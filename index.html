@@ -93,14 +93,13 @@
     .top-btn { width: 36px; height: 36px; background: rgba(0,0,0,0.6); border: none; border-radius: 10px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
     .top-btn:hover { background: rgba(0,0,0,0.8); }
 
-    /* Scene Info */
-    .scene-info { position: absolute; top: 60px; left: 0; right: 0; text-align: center; z-index: 10; }
-    .location-text { font-size: 11px; color: var(--color-text-dim); margin-bottom: 4px; }
-    .scene-icon { font-size: 48px; opacity: 0.3; }
+    /* Scene Info - 좌측 상단 위치 */
+    .scene-info { position: absolute; top: 50px; left: 12px; z-index: 10; }
+    .location-text { font-size: 11px; color: var(--color-text-dim); }
 
     /* Sound Area - Waveform UI */
-    .sound-area { position: absolute; top: 140px; left: 12px; right: 12px; z-index: 20; cursor: pointer; user-select: none; }
-    .sound-box { background: rgba(30, 58, 95, 0.8); border-radius: 16px; padding: 12px 14px; border: 2px solid #374151; transition: all 0.3s; }
+    .sound-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; cursor: pointer; user-select: none; }
+    .sound-box { background: rgba(30, 58, 95, 0.8); border-radius: 12px; padding: 6px 8px; border: 2px solid #374151; transition: all 0.3s; }
     .sound-box.mismatch { border-color: var(--color-danger); animation: soundPulse 2.5s infinite; }
     .sound-box.listening { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.15); animation: none; }
     .sound-box.listening.mismatch { border-color: var(--color-cold); animation: none; }
@@ -110,30 +109,31 @@
     .listening-mode .top-bar, .listening-mode .scene-info, .listening-mode .main-text-area, .listening-mode .choice-area { opacity: 0.4; }
     .sound-box.no-sound { opacity: 0.5; pointer-events: none; }
     @keyframes soundPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 25px 5px rgba(239,68,68,0.5); } }
-    .sound-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .sound-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .sound-label { font-size: 11px; color: var(--color-cold); font-weight: bold; }
     .sound-hint { font-size: 10px; color: var(--color-danger); animation: blink 1.5s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     /* Waveform */
-    .waveform-container { display: flex; align-items: center; justify-content: center; height: 30px; gap: 2px; margin: 8px 0; }
+    .waveform-container { display: flex; align-items: center; justify-content: center; height: 20px; gap: 2px; margin: 4px 0; }
     .waveform-bar { width: 3px; background: var(--color-cold); border-radius: 2px; transition: height 0.1s; }
     .waveform-bar.static { height: 4px; opacity: 0.5; }
     .sound-box.listening .waveform-bar { animation: waveAnim 0.5s ease-in-out infinite; }
     @keyframes waveAnim { 0%, 100% { height: 4px; } 50% { height: 100%; } }
 
-    .sound-text { font-size: 13px; color: var(--color-cold); line-height: 1.6; text-align: center; min-height: 20px; }
-    .sound-detail { display: none; font-size: 12px; color: var(--color-warm); margin-top: 8px; text-align: center; font-style: italic; }
+    .sound-text { font-size: 12px; color: var(--color-cold); line-height: 1.5; text-align: center; min-height: 16px; }
+    .sound-detail { display: none; font-size: 11px; color: var(--color-warm); margin-top: 4px; text-align: center; font-style: italic; }
     .sound-box.listening .sound-detail { display: block; }
 
     /* Main Text Area */
-    .main-text-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; cursor: pointer; }
-    .main-box { background: rgba(0,0,0,0.85); border-radius: 16px; padding: 14px 16px; border: 1px solid #374151; }
+    .main-text-area { position: absolute; top: 140px; left: 12px; right: 12px; height: 130px; z-index: 20; cursor: pointer; }
+    .main-box { background: rgba(0,0,0,0.7); border-radius: 16px; padding: 14px 16px; border: 1px solid #374151; height: 100%; box-sizing: border-box; overflow-y: auto; }
     .speaker { font-size: 13px; color: var(--color-cold); margin-bottom: 10px; font-weight: bold; }
     .main-text { font-size: 14px; color: var(--color-text); line-height: 1.8; white-space: pre-line; }
 
     /* Choice Area */
-    .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); }
+    .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); opacity: 0; transition: opacity 0.5s ease; }
+    .choice-area.visible { opacity: 1; }
     .choice-buttons { display: flex; flex-direction: column; gap: 8px; }
     .choice-btn { width: 100%; padding: 14px 16px; background: rgba(30, 58, 95, 0.8); border: 1px solid #374151; border-radius: 12px; color: var(--color-text); font-size: 13px; cursor: pointer; transition: all 0.2s; text-align: left; }
     .choice-btn:hover { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.2); transform: translateX(4px); }
@@ -169,14 +169,14 @@
     .gameover-overlay.active { display: flex; }
     .gameover-text { font-size: 32px; color: var(--color-danger); font-weight: bold; margin-bottom: 16px; }
     .gameover-reason { font-size: 14px; color: var(--color-text-dim); margin-bottom: 30px; }
-    .gameover-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 200px; }
+    .gameover-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 200px; margin: 0 auto; }
 
     /* Ending Overlay */
     .ending-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 70; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
     .ending-overlay.active { display: flex; }
     .ending-text { font-size: 28px; color: var(--color-cold); font-weight: bold; margin-bottom: 10px; }
     .ending-subtitle { font-size: 14px; color: var(--color-text-dim); margin-bottom: 30px; }
-    .ending-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 200px; }
+    .ending-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 200px; margin: 0 auto; }
 
     /* Release Info Popup */
     .release-popup { position: absolute; inset: 0; background: rgba(0,0,0,0.98); z-index: 80; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
@@ -265,7 +265,13 @@
 
       <div class="scene-info">
         <div class="location-text" id="locationText"></div>
-        <div class="scene-icon" id="sceneIcon"></div>
+      </div>
+
+      <div class="main-text-area" onclick="skipTyping()" ontouchend="skipTyping()">
+        <div class="main-box">
+          <div class="speaker" id="speaker"></div>
+          <div class="main-text" id="mainText"></div>
+        </div>
       </div>
 
       <div class="sound-area" id="soundArea" onmousedown="startListen()" onmouseup="endListen()" onmouseleave="endListen()" ontouchstart="startListen()" ontouchend="endListen()">
@@ -277,13 +283,6 @@
           <div class="waveform-container" id="waveform"></div>
           <div class="sound-text" id="soundText">무언가 소리가 들린다...</div>
           <div class="sound-detail" id="soundDetail"></div>
-        </div>
-      </div>
-
-      <div class="main-text-area" onclick="skipTyping()" ontouchend="skipTyping()">
-        <div class="main-box">
-          <div class="speaker" id="speaker"></div>
-          <div class="main-text" id="mainText"></div>
         </div>
       </div>
 
@@ -326,7 +325,7 @@
         <div class="gameover-text">GAME OVER</div>
         <div class="gameover-reason" id="gameoverReason"></div>
         <div class="gameover-buttons">
-          <button class="cta-btn" onclick="showReleasePopup()">정식 게임 하러가기</button>
+          <button class="cta-btn" onclick="showReleasePopup()">정식 게임 플레이</button>
         </div>
       </div>
 
@@ -335,7 +334,7 @@
         <div class="ending-text">🎉 축하합니다!</div>
         <div class="ending-subtitle">엔딩에 도달했습니다</div>
         <div class="ending-buttons">
-          <button class="cta-btn" onclick="showReleasePopup()">정식 게임 하러가기</button>
+          <button class="cta-btn" onclick="showReleasePopup()">정식 게임 플레이</button>
         </div>
       </div>
 
@@ -358,7 +357,7 @@
     const CONFIG = {
       API_KEY: 'AIzaSyDCyFtJIAONm_LtZxAyKYhYes-2FZ8K1AU',
       SPREADSHEET_ID: '16LtN9qtgWG7Fhc2TRKUgWA_6IIpiYcslnEaRmVUDRww',
-      CACHE_KEY: 'ringing_game_data_v2',
+      CACHE_KEY: 'ringing_game_data_v8',
       CACHE_DURATION: 1000 * 60 * 30,
       ANALYTICS_URL: 'https://script.google.com/macros/s/AKfycbz0ltWlEWlZSUAQ8_0tzQAQ0Z7JcP6mROkVeJ-p7avQD_UQpA3P-V6y___cu7i1maBd/exec'
     };
@@ -404,7 +403,7 @@
     }
 
     // ===== GAME STATE =====
-    let gameData = { scenes: [], choices: [], characters: [], encounters: [], items: [], config: {} };
+    let gameData = { scenes: [], choices: [], characters: [], encounters: [], items: [], config: {}, dialogues: [] };
     let currentSceneId = 'scene_00';
     let selectedCompanion = null;
     let stats = { health: 5, sanity: 5 };
@@ -420,6 +419,11 @@
     let currentTypingIndex = 0;
     let TYPING_SPEED = 50;  // 기본 50ms/글자
 
+    // 순차 대사 시스템 상태
+    let currentDialogueIndex = 0;
+    let currentDialogues = [];
+    let choiceDialogueCallback = null;  // 선택 대사 완료 후 콜백
+
     // ===== DATA LOADER =====
     async function loadGameData() {
       updateLoadingStatus('데이터 소스 확인 중...');
@@ -433,7 +437,7 @@
     }
 
     async function loadFromGoogleSheets() {
-      const sheets = ['Scenes', 'Choices', 'Characters', 'Encounters', 'Items', 'Config'];
+      const sheets = ['Scenes', 'Choices', 'Characters', 'Encounters', 'Items', 'Config', 'Dialogues'];
       for (const sheet of sheets) {
         updateLoadingStatus(`${sheet} 시트 로드 중...`);
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${sheet}?key=${CONFIG.API_KEY}`;
@@ -460,6 +464,7 @@
         case 'Encounters': gameData.encounters = data; break;
         case 'Items': gameData.items = data; break;
         case 'Config': data.forEach(row => { gameData.config[row.key] = row.value; }); break;
+        case 'Dialogues': gameData.dialogues = data; break;
       }
     }
 
@@ -513,6 +518,29 @@
         {item_id:'item_04',name:'손전등',icon:'🔦',health_effect:'0',sanity_effect:'5'}
       ];
       gameData.config = { game_title:'RINGING', game_subtitle:'빙하기 생존 어드벤처', initial_health:'100', initial_sanity:'100', start_scene:'scene_00' };
+      // 기본 대사 데이터
+      gameData.dialogues = [
+        {dialogue_id:'dlg_00_01',scene_id:'scene_00',order:'1',speaker:'나레이션',text:'2040년 겨울.\n갑작스러운 한파가 대한민국을 덮쳤다.'},
+        {dialogue_id:'dlg_00_02',scene_id:'scene_00',order:'2',speaker:'나레이션',text:'라디오에서는 부산으로 대피하라는 방송이 흘러나온다.'},
+        {dialogue_id:'dlg_01_01',scene_id:'scene_01',order:'1',speaker:'나레이션',text:'거리는 텅 비어있다.\n눈보라 속에서 동료와 함께 남쪽을 향해 걷는다.'},
+        {dialogue_id:'dlg_01_02',scene_id:'scene_01',order:'2',speaker:'동료',text:'일단 휴게소를 찾아보자.'},
+        {dialogue_id:'dlg_02_01',scene_id:'scene_02',order:'1',speaker:'나레이션',text:'버려진 휴게소에 도착했다.'},
+        {dialogue_id:'dlg_02_02',scene_id:'scene_02',order:'2',speaker:'동료',text:'여기서 잠시 쉬어가자.\n체력을 회복해야 해.'},
+        {dialogue_id:'dlg_03_01',scene_id:'scene_03',order:'1',speaker:'나레이션',text:'폐차들 사이로 길을 걷는다.\n갑자기 동료가 멈춰 섰다.'},
+        {dialogue_id:'dlg_03_02',scene_id:'scene_03',order:'2',speaker:'동료',text:'저기... 뭔가 있어.'},
+        {dialogue_id:'dlg_04_01',scene_id:'scene_04',order:'1',speaker:'나레이션',text:'버려진 건물 앞에서 한 사람을 만났다.'},
+        {dialogue_id:'dlg_04_02',scene_id:'scene_04',order:'2',speaker:'???',text:'당신들도 부산으로 가는 건가?\n같이 가지 않겠어?'},
+        {dialogue_id:'dlg_05_01',scene_id:'scene_05',order:'1',speaker:'나레이션',text:'임시 피난처에 도착했다.\n여러 생존자들이 모여있다.'},
+        {dialogue_id:'dlg_05_02',scene_id:'scene_05',order:'2',speaker:'나레이션',text:'벽에 붙은 전단지가 눈에 들어온다.'},
+        {dialogue_id:'dlg_06_01',scene_id:'scene_06',order:'1',speaker:'나레이션',text:'동료의 표정이 심상치 않다.'},
+        {dialogue_id:'dlg_06_02',scene_id:'scene_06',order:'2',speaker:'동료',text:'...잠깐, 할 얘기가 있어.'},
+        {dialogue_id:'dlg_07_01',scene_id:'scene_07',order:'1',speaker:'나레이션',text:'드디어 부산이 보인다.\n하지만 입구에는 무장한 사람들이 있다.'},
+        {dialogue_id:'dlg_07_02',scene_id:'scene_07',order:'2',speaker:'???',text:'여기서부터는 통제 구역이다.'},
+        {dialogue_id:'dlg_08_01',scene_id:'scene_08',order:'1',speaker:'나레이션',text:'안식처에 도착했다.\n하지만 이곳에서 충격적인 진실을 알게 된다.'},
+        {dialogue_id:'dlg_08_02',scene_id:'scene_08',order:'2',speaker:'나레이션',text:'빙하기는 자연재해가 아니었다.'},
+        {dialogue_id:'dlg_09_01',scene_id:'scene_09',order:'1',speaker:'나레이션',text:'기나긴 여정이 끝났다.\n당신은 살아남았다.'},
+        {dialogue_id:'dlg_09_02',scene_id:'scene_09',order:'2',speaker:'나레이션',text:'하지만 이것이 끝일까, 시작일까?'}
+      ];
     }
 
     // ===== CACHE =====
@@ -535,7 +563,7 @@
     function updateLoadingStatus(text) { document.getElementById('loadingStatus').textContent = text; }
 
     // ===== UI HELPERS =====
-    function createSnow() { const c = document.getElementById('snowContainer'); for (let i = 0; i < 50; i++) { const s = document.createElement('div'); s.className = 'snowflake'; s.textContent = '❄'; s.style.left = Math.random() * 100 + '%'; s.style.animationDuration = (Math.random() * 3 + 4) + 's'; s.style.animationDelay = Math.random() * 5 + 's'; s.style.opacity = Math.random() * 0.7 + 0.3; s.style.fontSize = (Math.random() * 10 + 8) + 'px'; c.appendChild(s); } }
+    function createSnow() { const c = document.getElementById('snowContainer'); for (let i = 0; i < 5; i++) { const s = document.createElement('div'); s.className = 'snowflake'; s.textContent = '❄'; s.style.left = Math.random() * 100 + '%'; s.style.animationDuration = (Math.random() * 3 + 4) + 's'; s.style.animationDelay = Math.random() * 5 + 's'; s.style.opacity = Math.random() * 0.7 + 0.3; s.style.fontSize = (Math.random() * 10 + 8) + 'px'; c.appendChild(s); } }
     function createWaveformBars() { const container = document.getElementById('waveform'); container.innerHTML = ''; for (let i = 0; i < 20; i++) { const bar = document.createElement('div'); bar.className = 'waveform-bar static'; bar.style.animationDelay = (i * 0.05) + 's'; container.appendChild(bar); } }
     function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
@@ -594,14 +622,66 @@
     }
 
     function skipTyping() {
-      if (!isTyping) return;
+      if (!isTyping) {
+        // 타이핑 완료 상태에서 클릭 → 다음 대사로
+        if (currentDialogues.length > 0 && currentDialogueIndex < currentDialogues.length) {
+          advanceDialogue();
+        } else if (choiceDialogueCallback) {
+          // 선택 대사 완료 후 클릭 → 씬 전환
+          const callback = choiceDialogueCallback;
+          choiceDialogueCallback = null;
+          callback();
+        }
+        return;
+      }
+      // 타이핑 중 클릭 → 즉시 완료
       if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
       document.getElementById('mainText').textContent = currentTypingText;
       isTyping = false;
-      enableInteraction();
+      // 대사 시스템 사용 중이면 다음 클릭 대기, 아니면 선택지 활성화
+      if (currentDialogues.length === 0 && !choiceDialogueCallback) {
+        enableInteraction();
+      }
+    }
+
+    // ===== 순차 대사 시스템 =====
+    function showNextDialogue() {
+      if (currentDialogueIndex >= currentDialogues.length) {
+        enableInteraction();
+        return;
+      }
+      const dialogue = currentDialogues[currentDialogueIndex];
+      const text = (dialogue.text || '').replace(/\\n/g, '\n');
+      const speakerEl = document.getElementById('speaker');
+      const mainTextEl = document.getElementById('mainText');
+      
+      // 화자 표시
+      if (dialogue.speaker && dialogue.speaker !== '나레이션') {
+        speakerEl.textContent = dialogue.speaker === '동료' ? selectedCompanion.name : dialogue.speaker;
+        speakerEl.style.display = 'block';
+      } else {
+        speakerEl.style.display = 'none';
+      }
+      
+      // 타이핑 시작
+      typeText(text, mainTextEl, () => {
+        // 타이핑 완료 - 다음 클릭 대기
+      });
+    }
+
+    function advanceDialogue() {
+      if (currentDialogues.length === 0) return;
+      currentDialogueIndex++;
+      if (currentDialogueIndex >= currentDialogues.length) {
+        enableInteraction();
+      } else {
+        showNextDialogue();
+      }
     }
 
     function enableInteraction() {
+      // 선택지 영역 표시 (페이드인)
+      document.querySelector('.choice-area').classList.add('visible');
       // 선택지 활성화
       document.querySelectorAll('.choice-btn').forEach(btn => {
         btn.disabled = false;
@@ -616,14 +696,14 @@
     }
 
     function disableInteraction() {
-      // 선택지 비활성화
+      // 선택지 영역 숨김
+      document.querySelector('.choice-area').classList.remove('visible');
+      // 선택지 비활성화 (청각 시스템은 항상 활성 유지)
       document.querySelectorAll('.choice-btn').forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = '0.5';
         btn.style.pointerEvents = 'none';
       });
-      // 청각 시스템 비활성화
-      document.getElementById('soundArea').style.pointerEvents = 'none';
     }
 
     function renderScene() {
@@ -647,24 +727,36 @@
         bgEl.style.background = getGradientForScene(currentSceneId);
       }
       document.getElementById('locationText').textContent = scene.location || '';
-      document.getElementById('sceneIcon').textContent = scene.icon || '';
       const mainText = (scene.main_text || '').replace(/\\n/g, '\n');
       const mainTextEl = document.getElementById('mainText');
       const speakerEl = document.getElementById('speaker');
       if (scene.speaker && scene.speaker !== '나레이션') { speakerEl.textContent = scene.speaker === '동료' ? selectedCompanion.name : scene.speaker; speakerEl.style.display = 'block'; } else { speakerEl.style.display = 'none'; }
       const soundBox = document.getElementById('soundBox'); const soundArea = document.getElementById('soundArea');
       const hasSound = scene.has_sound === 'TRUE';
-      if (hasSound) { soundBox.classList.remove('no-sound'); document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; }
-      else { soundBox.classList.add('no-sound'); document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; }
+      if (hasSound) { soundBox.classList.remove('no-sound'); document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; soundArea.style.pointerEvents = 'auto'; }
+      else { soundBox.classList.add('no-sound'); document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; soundArea.style.pointerEvents = 'none'; }
       const vignette = document.getElementById('vignette');
       if (scene.has_mismatch === 'TRUE') { vignette.classList.add('active'); soundBox.classList.add('mismatch'); } else { vignette.classList.remove('active'); soundBox.classList.remove('mismatch'); }
       // 선택지 렌더링 (비활성 상태로)
       const choices = gameData.choices.filter(c => c.scene_id === currentSceneId).sort((a, b) => parseInt(a.order) - parseInt(b.order));
       document.getElementById('choiceButtons').innerHTML = choices.map(c => `<button class="choice-btn" onclick="makeChoice('${c.choice_id}')" disabled style="opacity:0.5;pointer-events:none">${c.text}</button>`).join('');
       updateStats();
-      // 상호작용 비활성화 후 타이핑 시작
+      // 상호작용 비활성화
       disableInteraction();
-      typeText(mainText, mainTextEl, enableInteraction);
+      
+      // === 순차 대사 시스템 ===
+      currentDialogues = (gameData.dialogues || [])
+        .filter(d => d.scene_id === currentSceneId)
+        .sort((a, b) => parseInt(a.order) - parseInt(b.order));
+      currentDialogueIndex = 0;
+      
+      if (currentDialogues.length > 0) {
+        // 순차 대사 시스템 사용
+        showNextDialogue();
+      } else {
+        // 대사 없음 - 바로 선택지 활성화
+        enableInteraction();
+      }
     }
 
     function getGradientForScene(sceneId) {
@@ -695,13 +787,57 @@
       const healthChange = parseInt(choice.health_change) || 0;
       const sanityChange = parseInt(choice.sanity_change) || 0;
       sendAnalytics('choice', { choice_id: choiceId, choice_text: choice.text, health_change: healthChange, sanity_change: sanityChange });
-      if (healthChange !== 0) { stats.health = Math.max(0, Math.min(MAX_STATS, stats.health + healthChange)); showNotification(healthChange > 0 ? `❤️ +${healthChange}` : `💔 ${healthChange}`); }
-      if (sanityChange !== 0) { setTimeout(() => { stats.sanity = Math.max(0, Math.min(MAX_STATS, stats.sanity + sanityChange)); showNotification(sanityChange > 0 ? `🧠 +${sanityChange}` : `😰 ${sanityChange}`); updateStats(); }, healthChange !== 0 ? 1500 : 0); }
+
+      // 스탯 변화 + 이유 표시
+      if (healthChange !== 0) {
+        stats.health = Math.max(0, Math.min(MAX_STATS, stats.health + healthChange));
+        const healthReason = choice.health_reason || '';
+        const healthMsg = healthChange > 0
+          ? `❤️ +${healthChange}${healthReason ? ' | ' + healthReason : ''}`
+          : `💔 ${healthChange}${healthReason ? ' | ' + healthReason : ''}`;
+        showNotification(healthMsg);
+      }
+      if (sanityChange !== 0) {
+        setTimeout(() => {
+          stats.sanity = Math.max(0, Math.min(MAX_STATS, stats.sanity + sanityChange));
+          const sanityReason = choice.sanity_reason || '';
+          const sanityMsg = sanityChange > 0
+            ? `🧠 +${sanityChange}${sanityReason ? ' | ' + sanityReason : ''}`
+            : `😰 ${sanityChange}${sanityReason ? ' | ' + sanityReason : ''}`;
+          showNotification(sanityMsg);
+          updateStats();
+        }, healthChange !== 0 ? 1500 : 0);
+      }
       updateStats();
+
       if (stats.health <= 0) { setTimeout(() => gameOver('생명력이 바닥났습니다...'), 500); return; }
       if (stats.sanity <= 0) { setTimeout(() => gameOver('정신력이 바닥났습니다...'), 500); return; }
       if (choice.next_scene_id.startsWith('ending')) { sendAnalytics('ending', { ending_choice: choiceId, ending_type: choice.next_scene_id }); setTimeout(() => showEndingOverlay(), 500); return; }
-      setTimeout(() => { currentSceneId = choice.next_scene_id; isListening = false; document.getElementById('listenOverlay').classList.remove('active'); document.getElementById('soundBox').classList.remove('listening'); stopSound(); renderScene(); }, 300);
+
+      // 선택 후 대사가 있으면 표시 후 씬 전환
+      if (choice.choice_dialogue) {
+        const mainTextEl = document.getElementById('mainText');
+        const speakerEl = document.getElementById('speaker');
+        speakerEl.style.display = 'none';
+        disableInteraction();
+        // 씬 전환 콜백 저장 (skipTyping에서 사용)
+        choiceDialogueCallback = () => {
+          setTimeout(() => {
+            choiceDialogueCallback = null;
+            currentSceneId = choice.next_scene_id;
+            isListening = false;
+            document.getElementById('listenOverlay').classList.remove('active');
+            document.getElementById('soundBox').classList.remove('listening');
+            stopSound();
+            renderScene();
+          }, 500);
+        };
+        typeText(choice.choice_dialogue, mainTextEl, () => {
+          // 타이핑 완료 후 클릭 대기 (skipTyping에서 처리)
+        });
+      } else {
+        setTimeout(() => { currentSceneId = choice.next_scene_id; isListening = false; document.getElementById('listenOverlay').classList.remove('active'); document.getElementById('soundBox').classList.remove('listening'); stopSound(); renderScene(); }, 300);
+      }
     }
     function updateStats() {
       // Health icons
@@ -726,8 +862,6 @@
 
     // ===== LISTENING =====
     function startListen() {
-      // 타이핑 중이면 청각 집중 불가
-      if (isTyping) return;
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene || scene.has_sound !== 'TRUE') return;
       listenStartTime = Date.now();
