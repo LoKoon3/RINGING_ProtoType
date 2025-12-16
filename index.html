@@ -534,7 +534,7 @@
       updateStats();
       if (stats.health <= 0) { setTimeout(() => gameOver('생명력이 바닥났습니다...'), 500); return; }
       if (stats.sanity <= 0) { setTimeout(() => gameOver('정신력이 바닥났습니다...'), 500); return; }
-      if (choice.next_scene_id === 'ending') { sendAnalytics('ending', { ending_choice: choiceId }); setTimeout(() => showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'), 500); return; }
+      if (choice.next_scene_id.startsWith('ending')) { sendAnalytics('ending', { ending_choice: choiceId, ending_type: choice.next_scene_id }); setTimeout(() => showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'), 500); return; }
       setTimeout(() => { currentSceneId = choice.next_scene_id; isListening = false; document.getElementById('listenOverlay').classList.remove('active'); document.getElementById('soundBox').classList.remove('listening'); stopSound(); renderScene(); }, 300);
     }
     function updateStats() { document.getElementById('healthBar').style.width = stats.health + '%'; document.getElementById('healthVal').textContent = stats.health; document.getElementById('sanityBar').style.width = stats.sanity + '%'; document.getElementById('sanityVal').textContent = stats.sanity; }
