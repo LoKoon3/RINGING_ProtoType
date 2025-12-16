@@ -86,12 +86,11 @@
 
     /* Top Bar */
     .top-bar { position: absolute; top: 0; left: 0; right: 0; padding: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
-    .stats { display: flex; gap: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 8px 12px; border-radius: 12px; }
-    .stat { display: flex; align-items: center; gap: 6px; }
-    .stat-icon { font-size: 16px; }
-    .stat-bar { width: 50px; height: 8px; background: #374151; border-radius: 4px; overflow: hidden; }
-    .stat-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-    .stat-value { font-size: 10px; color: var(--color-text-dim); min-width: 24px; }
+    .stats { display: flex; gap: 16px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 8px 12px; border-radius: 12px; }
+    .stat { display: flex; align-items: center; gap: 4px; }
+    .stat-icons { display: flex; gap: 2px; }
+    .stat-icons span { font-size: 14px; transition: all 0.3s; }
+    .stat-icons span.empty { opacity: 0.2; filter: grayscale(1); }
     .top-buttons { display: flex; gap: 6px; }
     .top-btn { width: 36px; height: 36px; background: rgba(0,0,0,0.6); border: none; border-radius: 10px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
     .top-btn:hover { background: rgba(0,0,0,0.8); }
@@ -225,8 +224,8 @@
 
       <div class="top-bar">
         <div class="stats">
-          <div class="stat"><span class="stat-icon">❤️</span><div class="stat-bar"><div class="stat-fill" id="healthBar" style="width:100%; background:var(--color-danger);"></div></div><span class="stat-value" id="healthVal">100</span></div>
-          <div class="stat"><span class="stat-icon">🧠</span><div class="stat-bar"><div class="stat-fill" id="sanityBar" style="width:100%; background:var(--color-sanity);"></div></div><span class="stat-value" id="sanityVal">100</span></div>
+          <div class="stat"><div class="stat-icons" id="healthIcons">❤️❤️❤️❤️❤️</div></div>
+          <div class="stat"><div class="stat-icons" id="sanityIcons">🧠🧠🧠🧠🧠</div></div>
         </div>
         <div class="top-buttons">
           <button class="top-btn" onclick="toggleHelp()">❓</button>
@@ -381,7 +380,8 @@
     let gameData = { scenes: [], choices: [], characters: [], encounters: [], items: [], config: {} };
     let currentSceneId = 'scene_00';
     let selectedCompanion = null;
-    let stats = { health: 100, sanity: 100 };
+    let stats = { health: 5, sanity: 5 };
+    const MAX_STATS = 5;
     let inventory = [];
     let isListening = false;
     let listenTimer = null;
@@ -485,11 +485,11 @@
 
     // ===== INITIALIZATION =====
     function initGame() {
-      currentSceneId = 'scene_00'; stats = { health: 100, sanity: 100 }; selectedCompanion = null; inventory = [];
+      currentSceneId = 'scene_00'; stats = { health: MAX_STATS, sanity: MAX_STATS }; selectedCompanion = null; inventory = [];
       createSnow(); createWaveformBars(); renderCompanionList(); renderInventory();
       if (gameData.config.game_title) document.getElementById('gameTitle').textContent = gameData.config.game_title;
       if (gameData.config.game_subtitle) document.getElementById('gameSubtitle').textContent = gameData.config.game_subtitle;
-      stats.health = parseInt(gameData.config.initial_health) || 100; stats.sanity = parseInt(gameData.config.initial_sanity) || 100;
+      stats.health = MAX_STATS; stats.sanity = MAX_STATS;
       document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected'));
       document.getElementById('startBtn').disabled = true; document.getElementById('startBtn').textContent = '동료를 선택하세요';
       showScreen('titleScreen');
@@ -520,7 +520,7 @@
     function startGame() {
       if (!selectedCompanion) return;
       currentSceneId = gameData.config.start_scene || 'scene_00';
-      stats = { health: parseInt(gameData.config.initial_health) || 100, sanity: parseInt(gameData.config.initial_sanity) || 100 };
+      stats = { health: MAX_STATS, sanity: MAX_STATS };
       inventory = gameData.items.slice(0, 4).map(item => ({...item}));
       gameStartTime = Date.now();
       showScreen('gameScreen');
@@ -558,21 +558,48 @@
     }
     function convertDriveUrl(url) { if (!url) return ''; const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`; return url; }
 
+    // Convert 10-based value to 1-based (for 5-slot system)
+    function convertStatChange(value) {
+      if (value === 0) return 0;
+      return Math.sign(value) * Math.max(1, Math.round(Math.abs(value) / 10));
+    }
+
     function makeChoice(choiceId) {
       const choice = gameData.choices.find(c => c.choice_id === choiceId);
       if (!choice) return;
-      const healthChange = parseInt(choice.health_change) || 0;
-      const sanityChange = parseInt(choice.sanity_change) || 0;
+      const rawHealthChange = parseInt(choice.health_change) || 0;
+      const rawSanityChange = parseInt(choice.sanity_change) || 0;
+      const healthChange = convertStatChange(rawHealthChange);
+      const sanityChange = convertStatChange(rawSanityChange);
       sendAnalytics('choice', { choice_id: choiceId, choice_text: choice.text, health_change: healthChange, sanity_change: sanityChange });
-      if (healthChange !== 0) { stats.health = Math.max(0, Math.min(100, stats.health + healthChange)); showNotification(healthChange > 0 ? `❤️ 생명력 +${healthChange}` : `💔 생명력 ${healthChange}`); }
-      if (sanityChange !== 0) { setTimeout(() => { stats.sanity = Math.max(0, Math.min(100, stats.sanity + sanityChange)); showNotification(sanityChange > 0 ? `🧠 정신력 +${sanityChange}` : `😰 정신력 ${sanityChange}`); }, healthChange !== 0 ? 1500 : 0); }
+      if (healthChange !== 0) { stats.health = Math.max(0, Math.min(MAX_STATS, stats.health + healthChange)); showNotification(healthChange > 0 ? `❤️ +${healthChange}` : `💔 ${healthChange}`); }
+      if (sanityChange !== 0) { setTimeout(() => { stats.sanity = Math.max(0, Math.min(MAX_STATS, stats.sanity + sanityChange)); showNotification(sanityChange > 0 ? `🧠 +${sanityChange}` : `😰 ${sanityChange}`); updateStats(); }, healthChange !== 0 ? 1500 : 0); }
       updateStats();
       if (stats.health <= 0) { setTimeout(() => gameOver('생명력이 바닥났습니다...'), 500); return; }
       if (stats.sanity <= 0) { setTimeout(() => gameOver('정신력이 바닥났습니다...'), 500); return; }
       if (choice.next_scene_id.startsWith('ending')) { sendAnalytics('ending', { ending_choice: choiceId, ending_type: choice.next_scene_id }); setTimeout(() => showEndingOverlay(), 500); return; }
       setTimeout(() => { currentSceneId = choice.next_scene_id; isListening = false; document.getElementById('listenOverlay').classList.remove('active'); document.getElementById('soundBox').classList.remove('listening'); stopSound(); renderScene(); }, 300);
     }
-    function updateStats() { document.getElementById('healthBar').style.width = stats.health + '%'; document.getElementById('healthVal').textContent = stats.health; document.getElementById('sanityBar').style.width = stats.sanity + '%'; document.getElementById('sanityVal').textContent = stats.sanity; }
+    function updateStats() {
+      // Health icons
+      const healthContainer = document.getElementById('healthIcons');
+      healthContainer.innerHTML = '';
+      for (let i = 0; i < MAX_STATS; i++) {
+        const span = document.createElement('span');
+        span.textContent = '❤️';
+        if (i >= stats.health) span.classList.add('empty');
+        healthContainer.appendChild(span);
+      }
+      // Sanity icons
+      const sanityContainer = document.getElementById('sanityIcons');
+      sanityContainer.innerHTML = '';
+      for (let i = 0; i < MAX_STATS; i++) {
+        const span = document.createElement('span');
+        span.textContent = '🧠';
+        if (i >= stats.sanity) span.classList.add('empty');
+        sanityContainer.appendChild(span);
+      }
+    }
 
     // ===== LISTENING =====
     function startListen() {
@@ -597,10 +624,13 @@
     function renderInventory() { const grid = document.getElementById('inventoryGrid'); grid.innerHTML = ''; for (let i = 0; i < 8; i++) { const item = inventory[i]; const slot = document.createElement('div'); slot.className = `inv-item ${item ? '' : 'empty'}`; if (item) { slot.innerHTML = `<span class="inv-icon">${item.icon}</span><span class="inv-name">${item.name}</span>`; slot.onclick = () => useItem(i); } grid.appendChild(slot); } }
     function useItem(index) {
       const item = inventory[index]; if (!item) return;
-      const healthEffect = parseInt(item.health_effect) || 0; const sanityEffect = parseInt(item.sanity_effect) || 0;
+      const rawHealthEffect = parseInt(item.health_effect) || 0;
+      const rawSanityEffect = parseInt(item.sanity_effect) || 0;
+      const healthEffect = convertStatChange(rawHealthEffect);
+      const sanityEffect = convertStatChange(rawSanityEffect);
       sendAnalytics('item_use', { item_name: item.name, health_effect: healthEffect, sanity_effect: sanityEffect });
-      if (healthEffect !== 0) { stats.health = Math.min(100, stats.health + healthEffect); showNotification(`${item.icon} ${item.name} 사용! 생명력 +${healthEffect}`); }
-      if (sanityEffect !== 0) { stats.sanity = Math.min(100, stats.sanity + sanityEffect); showNotification(`${item.icon} ${item.name} 사용! 정신력 +${sanityEffect}`); }
+      if (healthEffect !== 0) { stats.health = Math.min(MAX_STATS, stats.health + healthEffect); showNotification(`${item.icon} ${item.name} 사용! ❤️ +${healthEffect}`); }
+      if (sanityEffect !== 0) { stats.sanity = Math.min(MAX_STATS, stats.sanity + sanityEffect); showNotification(`${item.icon} ${item.name} 사용! 🧠 +${sanityEffect}`); }
       updateStats(); inventory.splice(index, 1); renderInventory(); toggleBag();
     }
 
