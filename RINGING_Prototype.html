@@ -25,11 +25,11 @@
 
     /* Snow Effect */
     .snow-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; overflow: hidden; }
-    .snowflake { position: absolute; top: -10px; color: rgba(255,255,255,0.8); font-size: 10px; animation: fall linear infinite; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
-    @keyframes fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0.3; } }
+    .snowflake { position: absolute; top: -10px; color: white; font-size: 10px; animation: fall linear infinite; }
+    @keyframes fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 0.7; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0.1; } }
 
     /* Phone Frame */
-    .phone-frame { width: 320px; height: 600px; border-radius: 24px; overflow: hidden; position: relative; border: 2px solid #2d3748; box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.1); background: var(--bg-primary); }
+    .phone-frame { width: 320px; height: 600px; border-radius: 24px; overflow: hidden; position: relative; border: 3px solid #1e3a5f; box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 40px rgba(56,189,248,0.1); background: var(--bg-primary); }
     .screen { position: absolute; inset: 0; display: none; flex-direction: column; }
     .screen.active { display: flex; }
 
@@ -41,38 +41,36 @@
     .loading-status { color: var(--color-cold); font-size: 12px; margin-top: 10px; }
 
     /* Title Screen */
-    #titleScreen { background: linear-gradient(180deg, #0a0a1a 0%, #1a2744 50%, #0f1729 100%); align-items: center; justify-content: center; text-align: center; }
-    .title-content { z-index: 10; }
-    .game-logo { font-size: 48px; font-weight: bold; color: var(--color-text); text-shadow: 0 0 30px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; animation: logoGlow 3s ease-in-out infinite; }
-    @keyframes logoGlow { 0%, 100% { text-shadow: 0 0 30px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); } 50% { text-shadow: 0 0 50px rgba(56,189,248,0.8), 0 4px 20px rgba(0,0,0,0.5); } }
+    #titleScreen { background-image: url('assets/backgrounds/scene_05_shelter.png'); background-size: cover; background-position: center; background-repeat: no-repeat; align-items: center; justify-content: center; text-align: center; position: relative; height: 100% !important; min-height: 100% !important; }
+    #titleScreen::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,26,0.6) 0%, rgba(26,39,68,0.7) 50%, rgba(15,23,42,0.85) 100%); z-index: 1; }
+    .title-content { z-index: 10; position: relative; }
+    .game-logo { font-size: 48px; font-weight: bold; color: var(--color-text); text-shadow: 0 0 20px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; animation: logoGlow 3s ease-in-out infinite; }
+    @keyframes logoGlow { 0%, 100% { text-shadow: 0 0 20px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); } 50% { text-shadow: 0 0 35px rgba(56,189,248,0.8), 0 4px 20px rgba(0,0,0,0.5); } }
     .game-subtitle { font-size: 12px; color: var(--color-cold); letter-spacing: 4px; margin-bottom: 60px; opacity: 0.8; }
-    .title-btn { display: block; width: 200px; padding: 14px 24px; margin: 10px auto; background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(168,85,247,0.2)); border: 1px solid rgba(56,189,248,0.3); border-radius: 12px; color: var(--color-text); font-size: 14px; cursor: pointer; transition: all 0.3s; }
-    .title-btn:hover { background: linear-gradient(135deg, rgba(56,189,248,0.3), rgba(168,85,247,0.3)); border-color: var(--color-cold); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56,189,248,0.2); }
+    .title-btn { display: block; width: 200px; padding: 14px 24px; margin: 10px auto; background: linear-gradient(135deg, #1e3a5f, #0f172a); border: 1px solid var(--color-cold); border-radius: 12px; color: var(--color-text); font-size: 14px; cursor: pointer; transition: all 0.3s; }
+    .title-btn:hover { background: linear-gradient(135deg, #2563eb, #1e3a5f); border-color: #60a5fa; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56,189,248,0.3); }
     .title-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .title-footer { position: absolute; bottom: 20px; font-size: 10px; color: var(--color-text-dim); opacity: 0.5; }
 
     /* Companion Screen */
-    #companionScreen { background: linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%); padding: 20px; }
-    .companion-header { text-align: center; margin-bottom: 20px; }
-    .companion-title { font-size: 18px; color: var(--color-text); margin-bottom: 6px; }
-    .companion-desc { font-size: 11px; color: var(--color-text-dim); }
-    .companion-list { flex: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-    .companion-card { background: rgba(31,41,55,0.8); border: 2px solid #374151; border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.3s; position: relative; }
-    .companion-card:hover:not(.locked) { border-color: var(--color-warm); transform: translateX(4px); }
-    .companion-card.selected { border-color: var(--color-warm); background: rgba(251,191,36,0.1); }
-    .companion-card.locked { opacity: 0.5; cursor: not-allowed; }
-    .companion-info { display: flex; align-items: center; gap: 12px; }
-    .companion-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #374151, #1f2937); display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
-    .companion-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .companion-details { flex: 1; }
-    .companion-name { font-size: 14px; color: var(--color-text); font-weight: bold; margin-bottom: 2px; }
-    .companion-trait { font-size: 11px; color: var(--color-cold); }
-    .companion-ability { font-size: 10px; color: var(--color-text-dim); margin-top: 6px; line-height: 1.4; }
-    .lock-badge { position: absolute; top: 10px; right: 10px; font-size: 16px; }
-    .unlock-hint { font-size: 9px; color: var(--color-danger); margin-top: 6px; }
-    .start-btn { margin-top: 16px; padding: 14px; background: linear-gradient(135deg, var(--color-warm), #f59e0b); border: none; border-radius: 12px; color: #1a1a2e; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251,191,36,0.3); }
-    .start-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    #companionScreen { background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); padding: 12px; }
+    #companionScreen.active { display: flex; flex-direction: column; }
+    .companion-header { text-align: center; margin-bottom: 12px; flex-shrink: 0; }
+    .companion-title { font-size: 16px; color: var(--color-text); margin-bottom: 4px; }
+    .companion-desc { font-size: 10px; color: var(--color-text-dim); }
+    .companion-list { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    .companion-card { flex: 1; background-color: #1e3a5f; background-size: cover; background-position: center top; border: 2px solid #374151; border-radius: 16px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+    .companion-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.1) 100%); transition: all 0.3s; }
+    .companion-card:hover { border-color: var(--color-cold); transform: scale(1.01); box-shadow: 0 4px 20px rgba(56,189,248,0.3); }
+    .companion-card.selected { border-color: var(--color-warm); border-width: 3px; }
+    .companion-card.selected::before { background: linear-gradient(to top, rgba(251,191,36,0.4) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.1) 100%); }
+    .companion-info { position: relative; z-index: 1; padding: 16px; }
+    .companion-name { font-size: 22px; color: var(--color-text); font-weight: bold; margin-bottom: 6px; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+    .companion-trait { font-size: 13px; color: var(--color-cold); margin-bottom: 6px; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .companion-ability { font-size: 12px; color: var(--color-text-dim); line-height: 1.4; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .start-btn { flex-shrink: 0; width: 100%; padding: 16px; margin-top: 12px; background: linear-gradient(135deg, #1e3a5f, #0f172a); border: 2px solid var(--color-cold); border-radius: 14px; color: var(--color-text); font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+    .start-btn:hover:not(:disabled) { background: linear-gradient(135deg, #2563eb, #1e3a5f); border-color: #60a5fa; box-shadow: 0 4px 15px rgba(56,189,248,0.4); }
+    .start-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #374151; }
 
     /* Game Screen */
     #gameScreen { background: var(--bg-primary); }
@@ -102,11 +100,16 @@
 
     /* Sound Area - Waveform UI */
     .sound-area { position: absolute; top: 140px; left: 12px; right: 12px; z-index: 20; cursor: pointer; user-select: none; }
-    .sound-box { background: rgba(17,24,39,0.95); border-radius: 12px; padding: 12px 14px; border: 2px solid rgba(56,189,248,0.3); transition: all 0.3s; }
-    .sound-box.mismatch { border-color: rgba(239,68,68,0.5); animation: soundPulse 2.5s infinite; }
-    .sound-box.listening { border-color: var(--color-cold); background: rgba(17,24,39,0.98); }
+    .sound-box { background: rgba(30, 58, 95, 0.8); border-radius: 16px; padding: 12px 14px; border: 2px solid #374151; transition: all 0.3s; }
+    .sound-box.mismatch { border-color: var(--color-danger); animation: soundPulse 2.5s infinite; }
+    .sound-box.listening { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.15); animation: none; }
+    .sound-box.listening.mismatch { border-color: var(--color-cold); animation: none; }
+
+    /* 청각 집중 시 다른 UI 투명도 변경 */
+    .top-bar, .scene-info, .main-text-area, .choice-area { transition: opacity 0.5s ease; }
+    .listening-mode .top-bar, .listening-mode .scene-info, .listening-mode .main-text-area, .listening-mode .choice-area { opacity: 0.4; }
     .sound-box.no-sound { opacity: 0.5; pointer-events: none; }
-    @keyframes soundPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 30px 5px rgba(239,68,68,0.4); } }
+    @keyframes soundPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 25px 5px rgba(239,68,68,0.5); } }
     .sound-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .sound-label { font-size: 11px; color: var(--color-cold); font-weight: bold; }
     .sound-hint { font-size: 10px; color: var(--color-danger); animation: blink 1.5s infinite; }
@@ -119,21 +122,21 @@
     .sound-box.listening .waveform-bar { animation: waveAnim 0.5s ease-in-out infinite; }
     @keyframes waveAnim { 0%, 100% { height: 4px; } 50% { height: 100%; } }
 
-    .sound-text { font-size: 13px; color: #a5f3fc; line-height: 1.6; text-align: center; min-height: 20px; }
+    .sound-text { font-size: 13px; color: var(--color-cold); line-height: 1.6; text-align: center; min-height: 20px; }
     .sound-detail { display: none; font-size: 12px; color: var(--color-warm); margin-top: 8px; text-align: center; font-style: italic; }
     .sound-box.listening .sound-detail { display: block; }
 
     /* Main Text Area */
-    .main-text-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; }
-    .main-box { background: rgba(0,0,0,0.85); border-radius: 12px; padding: 14px; backdrop-filter: blur(4px); }
-    .speaker { font-size: 12px; color: var(--color-warm); margin-bottom: 8px; font-weight: bold; }
-    .main-text { font-size: 14px; color: var(--color-text); line-height: 1.7; white-space: pre-line; }
+    .main-text-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; cursor: pointer; }
+    .main-box { background: rgba(0,0,0,0.85); border-radius: 16px; padding: 14px 16px; border: 1px solid #374151; }
+    .speaker { font-size: 13px; color: var(--color-cold); margin-bottom: 10px; font-weight: bold; }
+    .main-text { font-size: 14px; color: var(--color-text); line-height: 1.8; white-space: pre-line; }
 
     /* Choice Area */
-    .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); }
+    .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); }
     .choice-buttons { display: flex; flex-direction: column; gap: 8px; }
-    .choice-btn { width: 100%; padding: 14px 16px; background: rgba(55,65,81,0.9); border: 2px solid #4b5563; border-radius: 12px; color: var(--color-text); font-size: 13px; cursor: pointer; transition: all 0.2s; text-align: left; }
-    .choice-btn:hover { border-color: var(--color-warm); background: rgba(75,85,99,0.9); transform: translateX(4px); }
+    .choice-btn { width: 100%; padding: 14px 16px; background: rgba(30, 58, 95, 0.8); border: 1px solid #374151; border-radius: 12px; color: var(--color-text); font-size: 13px; cursor: pointer; transition: all 0.2s; text-align: left; }
+    .choice-btn:hover { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.2); transform: translateX(4px); }
     .choice-btn:active { transform: scale(0.98); }
 
     /* Modals */
@@ -277,7 +280,7 @@
         </div>
       </div>
 
-      <div class="main-text-area">
+      <div class="main-text-area" onclick="skipTyping()" ontouchend="skipTyping()">
         <div class="main-box">
           <div class="speaker" id="speaker"></div>
           <div class="main-text" id="mainText"></div>
@@ -355,7 +358,7 @@
     const CONFIG = {
       API_KEY: 'AIzaSyDCyFtJIAONm_LtZxAyKYhYes-2FZ8K1AU',
       SPREADSHEET_ID: '16LtN9qtgWG7Fhc2TRKUgWA_6IIpiYcslnEaRmVUDRww',
-      CACHE_KEY: 'ringing_game_data',
+      CACHE_KEY: 'ringing_game_data_v2',
       CACHE_DURATION: 1000 * 60 * 30,
       ANALYTICS_URL: 'https://script.google.com/macros/s/AKfycbz0ltWlEWlZSUAQ8_0tzQAQ0Z7JcP6mROkVeJ-p7avQD_UQpA3P-V6y___cu7i1maBd/exec'
     };
@@ -410,6 +413,13 @@
     let isListening = false;
     let listenTimer = null;
 
+    // 타이핑 효과 상태
+    let isTyping = false;
+    let typingTimer = null;
+    let currentTypingText = '';
+    let currentTypingIndex = 0;
+    let TYPING_SPEED = 50;  // 기본 50ms/글자
+
     // ===== DATA LOADER =====
     async function loadGameData() {
       updateLoadingStatus('데이터 소스 확인 중...');
@@ -432,6 +442,11 @@
         const data = await response.json();
         parseSheetData(sheet, data.values);
       }
+      // 캐릭터 데이터는 항상 로컬 데이터 사용 (2명만 표시)
+      gameData.characters = [
+        {char_id:'char_01',name:'양희성',role:'companion',personality:'퇴역 군인 / 카리스마',ability:'장애물 40% 해결',portrait_url:'assets/characters/companion_yang.png',unlocked:'TRUE'},
+        {char_id:'char_02',name:'김수연',role:'companion',personality:'전직 의사 / 결연한 의지',ability:'게임오버 시 1회 생존',portrait_url:'assets/characters/companion_kim.png',unlocked:'TRUE'}
+      ];
     }
 
     function parseSheetData(sheetName, rows) {
@@ -488,9 +503,8 @@
         {choice_id:'c09_2',scene_id:'scene_09',order:'2',text:'[엔딩 B] 진실을 알린다',next_scene_id:'ending',health_change:'0',sanity_change:'0'}
       ];
       gameData.characters = [
-        {char_id:'char_01',name:'양희성',role:'companion',personality:'우직함 / 흔들림 없는 성격',ability:'장애물 40% 해결',portrait_url:'',unlocked:'TRUE'},
-        {char_id:'char_02',name:'김수연',role:'companion',personality:'조언형 / 신중한 성격',ability:'게임오버 시 1회 생존',portrait_url:'',unlock_condition:'1회 엔딩 또는 5회 게임오버',unlocked:'FALSE'},
-        {char_id:'char_03',name:'박민철',role:'companion',personality:'강인함 / 툴툴거리는 성격',ability:'비우호 NPC 25% 해결',portrait_url:'',unlock_condition:'2회 엔딩 또는 10회 게임오버',unlocked:'FALSE'}
+        {char_id:'char_01',name:'양희성',role:'companion',personality:'퇴역 군인 / 카리스마',ability:'장애물 40% 해결',portrait_url:'assets/characters/companion_yang.png',unlocked:'TRUE'},
+        {char_id:'char_02',name:'김수연',role:'companion',personality:'전직 의사 / 결연한 의지',ability:'게임오버 시 1회 생존',portrait_url:'assets/characters/companion_kim.png',unlocked:'TRUE'}
       ];
       gameData.items = [
         {item_id:'item_01',name:'손난로',icon:'🔥',health_effect:'10',sanity_effect:'0'},
@@ -530,11 +544,16 @@
       const list = document.getElementById('companionList'); list.innerHTML = '';
       const companions = gameData.characters.filter(c => c.role === 'companion');
       companions.forEach((comp, i) => {
-        const isUnlocked = comp.unlocked === 'TRUE';
-        const card = document.createElement('div'); card.className = `companion-card ${isUnlocked ? '' : 'locked'}`;
-        card.onclick = () => isUnlocked && selectCompanion(i, comp);
-        const avatarContent = comp.portrait_url ? `<img src="${comp.portrait_url}" alt="${comp.name}">` : ['👨', '👩', '👨‍🦱'][i] || '👤';
-        card.innerHTML = `${!isUnlocked ? '<div class="lock-badge">🔒</div>' : ''}<div class="companion-info"><div class="companion-avatar">${avatarContent}</div><div class="companion-details"><div class="companion-name">${comp.name}</div><div class="companion-trait">${comp.personality || ''}</div><div class="companion-ability">특성: ${comp.ability || ''}</div>${!isUnlocked && comp.unlock_condition ? `<div class="unlock-hint">해금 조건: ${comp.unlock_condition}</div>` : ''}</div></div>`;
+        const card = document.createElement('div');
+        card.className = 'companion-card';
+        card.style.backgroundImage = comp.portrait_url ? `url('${comp.portrait_url}')` : 'none';
+        card.onclick = () => selectCompanion(i, comp);
+        card.innerHTML = `
+          <div class="companion-info">
+            <div class="companion-name">${comp.name}</div>
+            <div class="companion-trait">${comp.personality || ''}</div>
+            <div class="companion-ability">특성: ${comp.ability || ''}</div>
+          </div>`;
         list.appendChild(card);
       });
     }
@@ -552,33 +571,121 @@
       renderScene();
     }
 
+    // ===== 타이핑 효과 시스템 =====
+    function typeText(text, element, onComplete) {
+      if (typingTimer) clearTimeout(typingTimer);
+      isTyping = true;
+      currentTypingText = text;
+      currentTypingIndex = 0;
+      element.textContent = '';
+
+      function typeNextChar() {
+        if (currentTypingIndex < currentTypingText.length) {
+          element.textContent += currentTypingText.charAt(currentTypingIndex);
+          currentTypingIndex++;
+          typingTimer = setTimeout(typeNextChar, TYPING_SPEED);
+        } else {
+          isTyping = false;
+          typingTimer = null;
+          if (onComplete) onComplete();
+        }
+      }
+      typeNextChar();
+    }
+
+    function skipTyping() {
+      if (!isTyping) return;
+      if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+      document.getElementById('mainText').textContent = currentTypingText;
+      isTyping = false;
+      enableInteraction();
+    }
+
+    function enableInteraction() {
+      // 선택지 활성화
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      });
+      // 청각 시스템 활성화
+      const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
+      if (scene && scene.has_sound === 'TRUE') {
+        document.getElementById('soundArea').style.pointerEvents = 'auto';
+      }
+    }
+
+    function disableInteraction() {
+      // 선택지 비활성화
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.pointerEvents = 'none';
+      });
+      // 청각 시스템 비활성화
+      document.getElementById('soundArea').style.pointerEvents = 'none';
+    }
+
     function renderScene() {
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene) { showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'); return; }
       sendAnalytics('scene_enter', { location: scene.location, has_sound: scene.has_sound === 'TRUE', has_mismatch: scene.has_mismatch === 'TRUE' });
       const bgEl = document.getElementById('sceneBg');
-      if (scene.background_type === 'image' && scene.background_url) { bgEl.style.background = 'none'; bgEl.style.backgroundImage = `url(${convertDriveUrl(scene.background_url)})`; bgEl.style.backgroundSize = 'cover'; bgEl.style.backgroundPosition = 'center'; }
-      else { bgEl.style.backgroundImage = 'none'; bgEl.style.background = getGradientForScene(currentSceneId); }
+      const localBgImage = getBackgroundImageForScene(currentSceneId);
+      if (localBgImage) {
+        bgEl.style.background = 'none';
+        bgEl.style.backgroundImage = `url(${localBgImage})`;
+        bgEl.style.backgroundSize = 'cover';
+        bgEl.style.backgroundPosition = 'center';
+      } else if (scene.background_type === 'image' && scene.background_url) {
+        bgEl.style.background = 'none';
+        bgEl.style.backgroundImage = `url(${convertDriveUrl(scene.background_url)})`;
+        bgEl.style.backgroundSize = 'cover';
+        bgEl.style.backgroundPosition = 'center';
+      } else {
+        bgEl.style.backgroundImage = 'none';
+        bgEl.style.background = getGradientForScene(currentSceneId);
+      }
       document.getElementById('locationText').textContent = scene.location || '';
       document.getElementById('sceneIcon').textContent = scene.icon || '';
       const mainText = (scene.main_text || '').replace(/\\n/g, '\n');
-      document.getElementById('mainText').textContent = mainText;
+      const mainTextEl = document.getElementById('mainText');
       const speakerEl = document.getElementById('speaker');
       if (scene.speaker && scene.speaker !== '나레이션') { speakerEl.textContent = scene.speaker === '동료' ? selectedCompanion.name : scene.speaker; speakerEl.style.display = 'block'; } else { speakerEl.style.display = 'none'; }
       const soundBox = document.getElementById('soundBox'); const soundArea = document.getElementById('soundArea');
       const hasSound = scene.has_sound === 'TRUE';
-      if (hasSound) { soundBox.classList.remove('no-sound'); soundArea.style.pointerEvents = 'auto'; document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; }
-      else { soundBox.classList.add('no-sound'); soundArea.style.pointerEvents = 'none'; document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; }
+      if (hasSound) { soundBox.classList.remove('no-sound'); document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; }
+      else { soundBox.classList.add('no-sound'); document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; }
       const vignette = document.getElementById('vignette');
       if (scene.has_mismatch === 'TRUE') { vignette.classList.add('active'); soundBox.classList.add('mismatch'); } else { vignette.classList.remove('active'); soundBox.classList.remove('mismatch'); }
+      // 선택지 렌더링 (비활성 상태로)
       const choices = gameData.choices.filter(c => c.scene_id === currentSceneId).sort((a, b) => parseInt(a.order) - parseInt(b.order));
-      document.getElementById('choiceButtons').innerHTML = choices.map(c => `<button class="choice-btn" onclick="makeChoice('${c.choice_id}')">${c.text}</button>`).join('');
+      document.getElementById('choiceButtons').innerHTML = choices.map(c => `<button class="choice-btn" onclick="makeChoice('${c.choice_id}')" disabled style="opacity:0.5;pointer-events:none">${c.text}</button>`).join('');
       updateStats();
+      // 상호작용 비활성화 후 타이핑 시작
+      disableInteraction();
+      typeText(mainText, mainTextEl, enableInteraction);
     }
 
     function getGradientForScene(sceneId) {
       const gradients = { 'scene_00': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', 'scene_01': 'linear-gradient(180deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%)', 'scene_02': 'linear-gradient(180deg, #1a1a2e 0%, #2d132c 50%, #4a1942 100%)', 'scene_03': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 50%, #2d3a4f 100%)', 'scene_04': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)', 'scene_05': 'linear-gradient(180deg, #0f1729 0%, #1a2744 50%, #2d4a6f 100%)', 'scene_06': 'linear-gradient(180deg, #1a1a2e 0%, #2d132c 50%, #801336 100%)', 'scene_07': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)', 'scene_08': 'linear-gradient(180deg, #0f1729 0%, #1a3a5c 50%, #2d5a8f 100%)', 'scene_09': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)' };
       return gradients[sceneId] || 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)';
+    }
+
+    function getBackgroundImageForScene(sceneId) {
+      const images = {
+        'scene_00': 'assets/backgrounds/scene_00_home.png',
+        'scene_01': 'assets/backgrounds/scene_01_street.png',
+        'scene_02': 'assets/backgrounds/scene_02_restarea.png',
+        'scene_03': 'assets/backgrounds/scene_03_highway.png',
+        'scene_04': 'assets/backgrounds/scene_04_daejeon.png',
+        'scene_05': 'assets/backgrounds/scene_05_shelter.png',
+        'scene_06': 'assets/backgrounds/scene_06_gyeongnam.png',
+        'scene_07': 'assets/backgrounds/scene_07_busan_outer.png',
+        'scene_08': 'assets/backgrounds/scene_08_sanctuary.png',
+        'scene_09': 'assets/backgrounds/scene_09_ending.png'
+      };
+      return images[sceneId] || null;
     }
     function convertDriveUrl(url) { if (!url) return ''; const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`; return url; }
 
@@ -619,17 +726,29 @@
 
     // ===== LISTENING =====
     function startListen() {
+      // 타이핑 중이면 청각 집중 불가
+      if (isTyping) return;
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene || scene.has_sound !== 'TRUE') return;
       listenStartTime = Date.now();
-      listenTimer = setTimeout(() => { isListening = true; document.getElementById('soundBox').classList.add('listening'); document.getElementById('listenOverlay').classList.add('active'); document.getElementById('soundHint').textContent = '집중 중...'; document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.remove('static')); if (scene.sound_url) playSound(convertDriveUrl(scene.sound_url)); }, 400);
+      // 딜레이 없이 바로 실행
+      isListening = true;
+      document.getElementById('soundBox').classList.add('listening');
+      document.getElementById('listenOverlay').classList.add('active');
+      document.getElementById('gameScreen').classList.add('listening-mode');
+      document.getElementById('soundHint').textContent = '집중 중...';
+      document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.remove('static'));
+      if (scene.sound_url) playSound(convertDriveUrl(scene.sound_url));
     }
     function endListen() {
       if (listenTimer) clearTimeout(listenTimer);
       if (listenStartTime && isListening) { const duration = Date.now() - listenStartTime; sendAnalytics('listen', { duration_ms: duration, completed: duration >= 400 }); }
       listenStartTime = null;
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
-      isListening = false; document.getElementById('soundBox').classList.remove('listening'); document.getElementById('listenOverlay').classList.remove('active');
+      isListening = false;
+      document.getElementById('soundBox').classList.remove('listening');
+      document.getElementById('listenOverlay').classList.remove('active');
+      document.getElementById('gameScreen').classList.remove('listening-mode');
       if (scene && scene.has_mismatch === 'TRUE') document.getElementById('soundHint').textContent = '꾹 눌러서 집중';
       document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.add('static')); stopSound();
     }

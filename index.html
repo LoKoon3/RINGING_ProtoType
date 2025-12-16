@@ -25,11 +25,11 @@
 
     /* Snow Effect */
     .snow-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; overflow: hidden; }
-    .snowflake { position: absolute; top: -10px; color: rgba(255,255,255,0.8); font-size: 10px; animation: fall linear infinite; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
-    @keyframes fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0.3; } }
+    .snowflake { position: absolute; top: -10px; color: white; font-size: 10px; animation: fall linear infinite; }
+    @keyframes fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 0.7; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0.1; } }
 
     /* Phone Frame */
-    .phone-frame { width: 320px; height: 600px; border-radius: 24px; overflow: hidden; position: relative; border: 2px solid #2d3748; box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.1); background: var(--bg-primary); }
+    .phone-frame { width: 320px; height: 600px; border-radius: 24px; overflow: hidden; position: relative; border: 3px solid #1e3a5f; box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 40px rgba(56,189,248,0.1); background: var(--bg-primary); }
     .screen { position: absolute; inset: 0; display: none; flex-direction: column; }
     .screen.active { display: flex; }
 
@@ -41,28 +41,28 @@
     .loading-status { color: var(--color-cold); font-size: 12px; margin-top: 10px; }
 
     /* Title Screen */
-    #titleScreen { background: linear-gradient(180deg, #0a0a1a 0%, #1a2744 50%, #0f1729 100%); align-items: center; justify-content: center; text-align: center; }
+    #titleScreen { background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f172a 100%); align-items: center; justify-content: center; text-align: center; }
     .title-content { z-index: 10; }
-    .game-logo { font-size: 48px; font-weight: bold; color: var(--color-text); text-shadow: 0 0 30px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; animation: logoGlow 3s ease-in-out infinite; }
-    @keyframes logoGlow { 0%, 100% { text-shadow: 0 0 30px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); } 50% { text-shadow: 0 0 50px rgba(56,189,248,0.8), 0 4px 20px rgba(0,0,0,0.5); } }
+    .game-logo { font-size: 48px; font-weight: bold; color: var(--color-text); text-shadow: 0 0 20px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; animation: logoGlow 3s ease-in-out infinite; }
+    @keyframes logoGlow { 0%, 100% { text-shadow: 0 0 20px rgba(56,189,248,0.5), 0 4px 20px rgba(0,0,0,0.5); } 50% { text-shadow: 0 0 35px rgba(56,189,248,0.8), 0 4px 20px rgba(0,0,0,0.5); } }
     .game-subtitle { font-size: 12px; color: var(--color-cold); letter-spacing: 4px; margin-bottom: 60px; opacity: 0.8; }
-    .title-btn { display: block; width: 200px; padding: 14px 24px; margin: 10px auto; background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(168,85,247,0.2)); border: 1px solid rgba(56,189,248,0.3); border-radius: 12px; color: var(--color-text); font-size: 14px; cursor: pointer; transition: all 0.3s; }
-    .title-btn:hover { background: linear-gradient(135deg, rgba(56,189,248,0.3), rgba(168,85,247,0.3)); border-color: var(--color-cold); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56,189,248,0.2); }
+    .title-btn { display: block; width: 200px; padding: 14px 24px; margin: 10px auto; background: linear-gradient(135deg, #1e3a5f, #0f172a); border: 1px solid var(--color-cold); border-radius: 12px; color: var(--color-text); font-size: 14px; cursor: pointer; transition: all 0.3s; }
+    .title-btn:hover { background: linear-gradient(135deg, #2563eb, #1e3a5f); border-color: #60a5fa; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56,189,248,0.3); }
     .title-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .title-footer { position: absolute; bottom: 20px; font-size: 10px; color: var(--color-text-dim); opacity: 0.5; }
 
     /* Companion Screen */
-    #companionScreen { background: linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%); padding: 20px; }
+    #companionScreen { background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); padding: 20px; }
     .companion-header { text-align: center; margin-bottom: 20px; }
     .companion-title { font-size: 18px; color: var(--color-text); margin-bottom: 6px; }
     .companion-desc { font-size: 11px; color: var(--color-text-dim); }
     .companion-list { flex: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-    .companion-card { background: rgba(31,41,55,0.8); border: 2px solid #374151; border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.3s; position: relative; }
-    .companion-card:hover:not(.locked) { border-color: var(--color-warm); transform: translateX(4px); }
+    .companion-card { background: rgba(30, 58, 95, 0.5); border: 1px solid #374151; border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.3s; position: relative; }
+    .companion-card:hover:not(.locked) { border-color: var(--color-cold); transform: translateX(4px); }
     .companion-card.selected { border-color: var(--color-warm); background: rgba(251,191,36,0.1); }
     .companion-card.locked { opacity: 0.5; cursor: not-allowed; }
     .companion-info { display: flex; align-items: center; gap: 12px; }
-    .companion-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #374151, #1f2937); display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+    .companion-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #1e3a5f, #0f172a); border: 2px solid #374151; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
     .companion-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .companion-details { flex: 1; }
     .companion-name { font-size: 14px; color: var(--color-text); font-weight: bold; margin-bottom: 2px; }
@@ -71,7 +71,7 @@
     .lock-badge { position: absolute; top: 10px; right: 10px; font-size: 16px; }
     .unlock-hint { font-size: 9px; color: var(--color-danger); margin-top: 6px; }
     .start-btn { margin-top: 16px; padding: 14px; background: linear-gradient(135deg, var(--color-warm), #f59e0b); border: none; border-radius: 12px; color: #1a1a2e; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251,191,36,0.3); }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251,191,36,0.4); }
     .start-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     /* Game Screen */
@@ -102,11 +102,11 @@
 
     /* Sound Area - Waveform UI */
     .sound-area { position: absolute; top: 140px; left: 12px; right: 12px; z-index: 20; cursor: pointer; user-select: none; }
-    .sound-box { background: rgba(17,24,39,0.95); border-radius: 12px; padding: 12px 14px; border: 2px solid rgba(56,189,248,0.3); transition: all 0.3s; }
-    .sound-box.mismatch { border-color: rgba(239,68,68,0.5); animation: soundPulse 2.5s infinite; }
-    .sound-box.listening { border-color: var(--color-cold); background: rgba(17,24,39,0.98); }
+    .sound-box { background: rgba(30, 58, 95, 0.8); border-radius: 16px; padding: 12px 14px; border: 2px solid #374151; transition: all 0.3s; }
+    .sound-box.mismatch { border-color: var(--color-danger); animation: soundPulse 2.5s infinite; }
+    .sound-box.listening { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.15); }
     .sound-box.no-sound { opacity: 0.5; pointer-events: none; }
-    @keyframes soundPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 30px 5px rgba(239,68,68,0.4); } }
+    @keyframes soundPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 25px 5px rgba(239,68,68,0.5); } }
     .sound-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .sound-label { font-size: 11px; color: var(--color-cold); font-weight: bold; }
     .sound-hint { font-size: 10px; color: var(--color-danger); animation: blink 1.5s infinite; }
@@ -119,21 +119,21 @@
     .sound-box.listening .waveform-bar { animation: waveAnim 0.5s ease-in-out infinite; }
     @keyframes waveAnim { 0%, 100% { height: 4px; } 50% { height: 100%; } }
 
-    .sound-text { font-size: 13px; color: #a5f3fc; line-height: 1.6; text-align: center; min-height: 20px; }
+    .sound-text { font-size: 13px; color: var(--color-cold); line-height: 1.6; text-align: center; min-height: 20px; }
     .sound-detail { display: none; font-size: 12px; color: var(--color-warm); margin-top: 8px; text-align: center; font-style: italic; }
     .sound-box.listening .sound-detail { display: block; }
 
     /* Main Text Area */
-    .main-text-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; }
-    .main-box { background: rgba(0,0,0,0.85); border-radius: 12px; padding: 14px; backdrop-filter: blur(4px); }
-    .speaker { font-size: 12px; color: var(--color-warm); margin-bottom: 8px; font-weight: bold; }
-    .main-text { font-size: 14px; color: var(--color-text); line-height: 1.7; white-space: pre-line; }
+    .main-text-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; cursor: pointer; }
+    .main-box { background: rgba(0,0,0,0.85); border-radius: 16px; padding: 14px 16px; border: 1px solid #374151; }
+    .speaker { font-size: 13px; color: var(--color-cold); margin-bottom: 10px; font-weight: bold; }
+    .main-text { font-size: 14px; color: var(--color-text); line-height: 1.8; white-space: pre-line; }
 
     /* Choice Area */
-    .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); }
+    .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); }
     .choice-buttons { display: flex; flex-direction: column; gap: 8px; }
-    .choice-btn { width: 100%; padding: 14px 16px; background: rgba(55,65,81,0.9); border: 2px solid #4b5563; border-radius: 12px; color: var(--color-text); font-size: 13px; cursor: pointer; transition: all 0.2s; text-align: left; }
-    .choice-btn:hover { border-color: var(--color-warm); background: rgba(75,85,99,0.9); transform: translateX(4px); }
+    .choice-btn { width: 100%; padding: 14px 16px; background: rgba(30, 58, 95, 0.8); border: 1px solid #374151; border-radius: 12px; color: var(--color-text); font-size: 13px; cursor: pointer; transition: all 0.2s; text-align: left; }
+    .choice-btn:hover { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.2); transform: translateX(4px); }
     .choice-btn:active { transform: scale(0.98); }
 
     /* Modals */
@@ -277,7 +277,7 @@
         </div>
       </div>
 
-      <div class="main-text-area">
+      <div class="main-text-area" onclick="skipTyping()" ontouchend="skipTyping()">
         <div class="main-box">
           <div class="speaker" id="speaker"></div>
           <div class="main-text" id="mainText"></div>
@@ -409,6 +409,13 @@
     let inventory = [];
     let isListening = false;
     let listenTimer = null;
+
+    // 타이핑 효과 상태
+    let isTyping = false;
+    let typingTimer = null;
+    let currentTypingText = '';
+    let currentTypingIndex = 0;
+    let TYPING_SPEED = 50;  // 기본 50ms/글자
 
     // ===== DATA LOADER =====
     async function loadGameData() {
@@ -552,6 +559,61 @@
       renderScene();
     }
 
+    // ===== 타이핑 효과 시스템 =====
+    function typeText(text, element, onComplete) {
+      if (typingTimer) clearTimeout(typingTimer);
+      isTyping = true;
+      currentTypingText = text;
+      currentTypingIndex = 0;
+      element.textContent = '';
+
+      function typeNextChar() {
+        if (currentTypingIndex < currentTypingText.length) {
+          element.textContent += currentTypingText.charAt(currentTypingIndex);
+          currentTypingIndex++;
+          typingTimer = setTimeout(typeNextChar, TYPING_SPEED);
+        } else {
+          isTyping = false;
+          typingTimer = null;
+          if (onComplete) onComplete();
+        }
+      }
+      typeNextChar();
+    }
+
+    function skipTyping() {
+      if (!isTyping) return;
+      if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+      document.getElementById('mainText').textContent = currentTypingText;
+      isTyping = false;
+      enableInteraction();
+    }
+
+    function enableInteraction() {
+      // 선택지 활성화
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      });
+      // 청각 시스템 활성화
+      const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
+      if (scene && scene.has_sound === 'TRUE') {
+        document.getElementById('soundArea').style.pointerEvents = 'auto';
+      }
+    }
+
+    function disableInteraction() {
+      // 선택지 비활성화
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.pointerEvents = 'none';
+      });
+      // 청각 시스템 비활성화
+      document.getElementById('soundArea').style.pointerEvents = 'none';
+    }
+
     function renderScene() {
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene) { showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'); return; }
@@ -562,18 +624,22 @@
       document.getElementById('locationText').textContent = scene.location || '';
       document.getElementById('sceneIcon').textContent = scene.icon || '';
       const mainText = (scene.main_text || '').replace(/\\n/g, '\n');
-      document.getElementById('mainText').textContent = mainText;
+      const mainTextEl = document.getElementById('mainText');
       const speakerEl = document.getElementById('speaker');
       if (scene.speaker && scene.speaker !== '나레이션') { speakerEl.textContent = scene.speaker === '동료' ? selectedCompanion.name : scene.speaker; speakerEl.style.display = 'block'; } else { speakerEl.style.display = 'none'; }
       const soundBox = document.getElementById('soundBox'); const soundArea = document.getElementById('soundArea');
       const hasSound = scene.has_sound === 'TRUE';
-      if (hasSound) { soundBox.classList.remove('no-sound'); soundArea.style.pointerEvents = 'auto'; document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; }
-      else { soundBox.classList.add('no-sound'); soundArea.style.pointerEvents = 'none'; document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; }
+      if (hasSound) { soundBox.classList.remove('no-sound'); document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; }
+      else { soundBox.classList.add('no-sound'); document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; }
       const vignette = document.getElementById('vignette');
       if (scene.has_mismatch === 'TRUE') { vignette.classList.add('active'); soundBox.classList.add('mismatch'); } else { vignette.classList.remove('active'); soundBox.classList.remove('mismatch'); }
+      // 선택지 렌더링 (비활성 상태로)
       const choices = gameData.choices.filter(c => c.scene_id === currentSceneId).sort((a, b) => parseInt(a.order) - parseInt(b.order));
-      document.getElementById('choiceButtons').innerHTML = choices.map(c => `<button class="choice-btn" onclick="makeChoice('${c.choice_id}')">${c.text}</button>`).join('');
+      document.getElementById('choiceButtons').innerHTML = choices.map(c => `<button class="choice-btn" onclick="makeChoice('${c.choice_id}')" disabled style="opacity:0.5;pointer-events:none">${c.text}</button>`).join('');
       updateStats();
+      // 상호작용 비활성화 후 타이핑 시작
+      disableInteraction();
+      typeText(mainText, mainTextEl, enableInteraction);
     }
 
     function getGradientForScene(sceneId) {
@@ -619,6 +685,8 @@
 
     // ===== LISTENING =====
     function startListen() {
+      // 타이핑 중이면 청각 집중 불가
+      if (isTyping) return;
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene || scene.has_sound !== 'TRUE') return;
       listenStartTime = Date.now();
@@ -696,4 +764,4 @@
     loadGameData();
   </script>
 </body>
-</html><!-- Cache bust: 1765880400 -->
+</html>
