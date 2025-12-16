@@ -294,28 +294,56 @@
     // =====================================================
     // ===== BACKEND CONFIG (여기서만 설정) =====
     // =====================================================
-    // Google Sheets 연동 시 아래 값을 입력하세요
-    // API_KEY: Google Cloud Console에서 생성한 API 키
-    // SPREADSHEET_ID: Google Sheets URL에서 /d/ 와 /edit 사이의 값
-    // 예: https://docs.google.com/spreadsheets/d/[이 부분]/edit
-
     const CONFIG = {
       API_KEY: 'AIzaSyDCyFtJIAONm_LtZxAyKYhYes-2FZ8K1AU',
       SPREADSHEET_ID: '16LtN9qtgWG7Fhc2TRKUgWA_6IIpiYcslnEaRmVUDRww',
       CACHE_KEY: 'ringing_game_data',
-      CACHE_DURATION: 1000 * 60 * 30 // 30분
+      CACHE_DURATION: 1000 * 60 * 30,
+      ANALYTICS_URL: 'https://script.google.com/macros/s/AKfycbz0ltWlEWlZSUAQ8_0tzQAQ0Z7JcP6mROkVeJ-p7avQD_UQpA3P-V6y___cu7i1maBd/exec'
     };
     // =====================================================
 
+    // ===== ANALYTICS =====
+    const sessionId = generateSessionId();
+    let gameStartTime = null;
+    let listenStartTime = null;
+
+    function generateSessionId() {
+      return Math.random().toString(36).substring(2, 10);
+    }
+
+    function getPlayTime() {
+      if (!gameStartTime) return 0;
+      return Math.floor((Date.now() - gameStartTime) / 1000);
+    }
+
+    async function sendAnalytics(eventType, detail = {}) {
+      if (!CONFIG.ANALYTICS_URL) return;
+      try {
+        const payload = {
+          session_id: sessionId,
+          event_type: eventType,
+          scene_id: currentSceneId || '',
+          detail: detail,
+          health: stats.health,
+          sanity: stats.sanity,
+          play_time: getPlayTime(),
+          companion: selectedCompanion ? selectedCompanion.name : ''
+        };
+        fetch(CONFIG.ANALYTICS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        console.log('[Analytics]', eventType, detail);
+      } catch (e) {
+        console.error('[Analytics Error]', e);
+      }
+    }
+
     // ===== GAME STATE =====
-    let gameData = {
-      scenes: [],
-      choices: [],
-      characters: [],
-      encounters: [],
-      items: [],
-      config: {}
-    };
+    let gameData = { scenes: [], choices: [], characters: [], encounters: [], items: [], config: {} };
     let currentSceneId = 'scene_00';
     let selectedCompanion = null;
     let stats = { health: 100, sanity: 100 };
@@ -326,34 +354,13 @@
     // ===== DATA LOADER =====
     async function loadGameData() {
       updateLoadingStatus('데이터 소스 확인 중...');
-
-      // 캐시 확인
       const cached = getCachedData();
-      if (cached) {
-        updateLoadingStatus('캐시 데이터 로드 완료');
-        gameData = cached;
-        initGame();
-        return;
-      }
-
-      // Google Sheets API 연동 시도
+      if (cached) { updateLoadingStatus('캐시 데이터 로드 완료'); gameData = cached; initGame(); return; }
       if (CONFIG.API_KEY && CONFIG.SPREADSHEET_ID) {
-        try {
-          updateLoadingStatus('Google Sheets 연결 중...');
-          await loadFromGoogleSheets();
-          cacheData(gameData);
-          initGame();
-          return;
-        } catch (e) {
-          console.error('Google Sheets 로드 실패:', e);
-          updateLoadingStatus('연결 실패, 기본 데이터 사용');
-        }
+        try { updateLoadingStatus('Google Sheets 연결 중...'); await loadFromGoogleSheets(); cacheData(gameData); initGame(); return; }
+        catch (e) { console.error('Google Sheets 로드 실패:', e); updateLoadingStatus('연결 실패, 기본 데이터 사용'); }
       }
-
-      // 기본 데이터 사용
-      updateLoadingStatus('기본 데이터 로드 중...');
-      loadDefaultData();
-      initGame();
+      updateLoadingStatus('기본 데이터 로드 중...'); loadDefaultData(); initGame();
     }
 
     async function loadFromGoogleSheets() {
@@ -371,11 +378,7 @@
     function parseSheetData(sheetName, rows) {
       if (!rows || rows.length < 2) return;
       const headers = rows[0];
-      const data = rows.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((h, i) => { obj[h] = row[i] || ''; });
-        return obj;
-      });
+      const data = rows.slice(1).map(row => { const obj = {}; headers.forEach((h, i) => { obj[h] = row[i] || ''; }); return obj; });
       switch (sheetName) {
         case 'Scenes': gameData.scenes = data; break;
         case 'Choices': gameData.choices = data; break;
@@ -388,16 +391,16 @@
 
     function loadDefaultData() {
       gameData.scenes = [
-        {scene_id:'scene_00',location:'서울, 자택',icon:'🏠',background_type:'gradient',background_url:'',main_text:'2040년 겨울.\n갑작스러운 한파가 대한민국을 덮쳤다.\n\n라디오에서는 부산으로 대피하라는 방송이 흘러나온다.',speaker:'나레이션',has_sound:'TRUE',sound_hint:'창밖으로 매서운 바람 소리가 들린다',sound_detail:'...멀리서 사이렌 소리. 대피 방송이 울린다.',sound_url:'',has_mismatch:'TRUE'},
-        {scene_id:'scene_01',location:'서울, 거리',icon:'🏙️',background_type:'gradient',background_url:'',main_text:'거리는 텅 비어있다.\n눈보라 속에서 동료와 함께 남쪽을 향해 걷는다.\n\n"일단 휴게소를 찾아보자."',speaker:'',has_sound:'TRUE',sound_hint:'눈 밟는 발자국 소리',sound_detail:'동료의 발자국... 그리고 저 멀리서 다른 발자국 소리.',sound_url:'',has_mismatch:'FALSE'},
-        {scene_id:'scene_02',location:'경기도, 휴게소',icon:'⛽',background_type:'gradient',background_url:'',main_text:'"여기서 잠시 쉬어가자.\n체력을 회복해야 해."',speaker:'동료',has_sound:'TRUE',sound_hint:'모닥불 타는 소리',sound_detail:'불꽃 소리 사이로... 누군가의 속삭임이 들린다.',sound_url:'',has_mismatch:'TRUE'},
-        {scene_id:'scene_03',location:'고속도로',icon:'🛣️',background_type:'gradient',background_url:'',main_text:'폐차들 사이로 길을 걷는다.\n갑자기 동료가 멈춰 섰다.\n\n"저기... 뭔가 있어."',speaker:'나레이션',has_sound:'TRUE',sound_hint:'바람이 울부짖는 소리',sound_detail:'바람 소리... 아니, 이건 차량 소리다. 누군가 온다.',sound_url:'',has_mismatch:'TRUE'},
-        {scene_id:'scene_04',location:'대전 외곽',icon:'🏚️',background_type:'gradient',background_url:'',main_text:'버려진 건물 앞에서 한 사람을 만났다.\n\n"당신들도 부산으로 가는 건가?\n같이 가지 않겠어?"',speaker:'???',has_sound:'TRUE',sound_hint:'적막한 정적',sound_detail:'...숨소리. 건물 안에 누군가 있다.',sound_url:'',has_mismatch:'TRUE'},
-        {scene_id:'scene_05',location:'피난처',icon:'🏕️',background_type:'gradient',background_url:'',main_text:'임시 피난처에 도착했다.\n여러 생존자들이 모여있다.\n\n벽에 붙은 전단지가 눈에 들어온다.',speaker:'나레이션',has_sound:'TRUE',sound_hint:'사람들의 웅성거림',sound_detail:'"...정부가 숨기고 있어." "빙하기가 인공적이라고?"',sound_url:'',has_mismatch:'FALSE'},
-        {scene_id:'scene_06',location:'경남 진입로',icon:'🌨️',background_type:'gradient',background_url:'',main_text:'동료의 표정이 심상치 않다.\n\n"...잠깐, 할 얘기가 있어."',speaker:'동료',has_sound:'TRUE',sound_hint:'동료의 발걸음이 느려진다',sound_detail:'동료가 무전기로 누군가와 얘기하고 있다...?',sound_url:'',has_mismatch:'TRUE'},
-        {scene_id:'scene_07',location:'부산 외곽',icon:'🌊',background_type:'gradient',background_url:'',main_text:'드디어 부산이 보인다.\n하지만 입구에는 무장한 사람들이 있다.\n\n"여기서부터는 통제 구역이다."',speaker:'나레이션',has_sound:'TRUE',sound_hint:'먼 파도 소리',sound_detail:'파도 소리... 그리고 헬기 프로펠러 소리. 군대?',sound_url:'',has_mismatch:'FALSE'},
-        {scene_id:'scene_08',location:'부산, 안식처',icon:'🏛️',background_type:'gradient',background_url:'',main_text:'안식처에 도착했다.\n하지만 이곳에서 충격적인 진실을 알게 된다.\n\n빙하기는 자연재해가 아니었다.',speaker:'나레이션',has_sound:'TRUE',sound_hint:'실내의 따뜻한 공기',sound_detail:'"...실험이 실패했어." "인류의 미래를 위해..."',sound_url:'',has_mismatch:'TRUE'},
-        {scene_id:'scene_09',location:'엔딩',icon:'❄️',background_type:'gradient',background_url:'',main_text:'기나긴 여정이 끝났다.\n\n당신은 살아남았다.\n하지만 이것이 끝일까, 시작일까?',speaker:'나레이션',has_sound:'FALSE',sound_hint:'',sound_detail:'새로운 시작의 소리가 들린다.',sound_url:'',has_mismatch:'FALSE'}
+        {scene_id:'scene_00',location:'서울, 자택',icon:'🏠',background_type:'gradient',background_url:'',main_text:'2040년 겨울.\\n갑작스러운 한파가 대한민국을 덮쳤다.\\n\\n라디오에서는 부산으로 대피하라는 방송이 흘러나온다.',speaker:'나레이션',has_sound:'TRUE',sound_hint:'창밖으로 매서운 바람 소리가 들린다',sound_detail:'...멀리서 사이렌 소리. 대피 방송이 울린다.',sound_url:'',has_mismatch:'TRUE'},
+        {scene_id:'scene_01',location:'서울, 거리',icon:'🏙️',background_type:'gradient',background_url:'',main_text:'거리는 텅 비어있다.\\n눈보라 속에서 동료와 함께 남쪽을 향해 걷는다.\\n\\n"일단 휴게소를 찾아보자."',speaker:'',has_sound:'TRUE',sound_hint:'눈 밟는 발자국 소리',sound_detail:'동료의 발자국... 그리고 저 멀리서 다른 발자국 소리.',sound_url:'',has_mismatch:'FALSE'},
+        {scene_id:'scene_02',location:'경기도, 휴게소',icon:'⛽',background_type:'gradient',background_url:'',main_text:'"여기서 잠시 쉬어가자.\\n체력을 회복해야 해."',speaker:'동료',has_sound:'TRUE',sound_hint:'모닥불 타는 소리',sound_detail:'불꽃 소리 사이로... 누군가의 속삭임이 들린다.',sound_url:'',has_mismatch:'TRUE'},
+        {scene_id:'scene_03',location:'고속도로',icon:'🛣️',background_type:'gradient',background_url:'',main_text:'폐차들 사이로 길을 걷는다.\\n갑자기 동료가 멈춰 섰다.\\n\\n"저기... 뭔가 있어."',speaker:'나레이션',has_sound:'TRUE',sound_hint:'바람이 울부짖는 소리',sound_detail:'바람 소리... 아니, 이건 차량 소리다. 누군가 온다.',sound_url:'',has_mismatch:'TRUE'},
+        {scene_id:'scene_04',location:'대전 외곽',icon:'🏚️',background_type:'gradient',background_url:'',main_text:'버려진 건물 앞에서 한 사람을 만났다.\\n\\n"당신들도 부산으로 가는 건가?\\n같이 가지 않겠어?"',speaker:'???',has_sound:'TRUE',sound_hint:'적막한 정적',sound_detail:'...숨소리. 건물 안에 누군가 있다.',sound_url:'',has_mismatch:'TRUE'},
+        {scene_id:'scene_05',location:'피난처',icon:'🏕️',background_type:'gradient',background_url:'',main_text:'임시 피난처에 도착했다.\\n여러 생존자들이 모여있다.\\n\\n벽에 붙은 전단지가 눈에 들어온다.',speaker:'나레이션',has_sound:'TRUE',sound_hint:'사람들의 웅성거림',sound_detail:'"...정부가 숨기고 있어." "빙하기가 인공적이라고?"',sound_url:'',has_mismatch:'FALSE'},
+        {scene_id:'scene_06',location:'경남 진입로',icon:'🌨️',background_type:'gradient',background_url:'',main_text:'동료의 표정이 심상치 않다.\\n\\n"...잠깐, 할 얘기가 있어."',speaker:'동료',has_sound:'TRUE',sound_hint:'동료의 발걸음이 느려진다',sound_detail:'동료가 무전기로 누군가와 얘기하고 있다...?',sound_url:'',has_mismatch:'TRUE'},
+        {scene_id:'scene_07',location:'부산 외곽',icon:'🌊',background_type:'gradient',background_url:'',main_text:'드디어 부산이 보인다.\\n하지만 입구에는 무장한 사람들이 있다.\\n\\n"여기서부터는 통제 구역이다."',speaker:'나레이션',has_sound:'TRUE',sound_hint:'먼 파도 소리',sound_detail:'파도 소리... 그리고 헬기 프로펠러 소리. 군대?',sound_url:'',has_mismatch:'FALSE'},
+        {scene_id:'scene_08',location:'부산, 안식처',icon:'🏛️',background_type:'gradient',background_url:'',main_text:'안식처에 도착했다.\\n하지만 이곳에서 충격적인 진실을 알게 된다.\\n\\n빙하기는 자연재해가 아니었다.',speaker:'나레이션',has_sound:'TRUE',sound_hint:'실내의 따뜻한 공기',sound_detail:'"...실험이 실패했어." "인류의 미래를 위해..."',sound_url:'',has_mismatch:'TRUE'},
+        {scene_id:'scene_09',location:'엔딩',icon:'❄️',background_type:'gradient',background_url:'',main_text:'기나긴 여정이 끝났다.\\n\\n당신은 살아남았다.\\n하지만 이것이 끝일까, 시작일까?',speaker:'나레이션',has_sound:'FALSE',sound_hint:'',sound_detail:'새로운 시작의 소리가 들린다.',sound_url:'',has_mismatch:'FALSE'}
       ];
       gameData.choices = [
         {choice_id:'c00_1',scene_id:'scene_00',order:'1',text:'짐을 싸고 출발한다',next_scene_id:'scene_01',health_change:'0',sanity_change:'0'},
@@ -441,105 +444,42 @@
 
     // ===== CACHE =====
     function getCachedData() {
-      try {
-        const cached = localStorage.getItem(CONFIG.CACHE_KEY);
-        if (!cached) return null;
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp > CONFIG.CACHE_DURATION) {
-          localStorage.removeItem(CONFIG.CACHE_KEY);
-          return null;
-        }
-        return data;
-      } catch (e) { return null; }
+      try { const cached = localStorage.getItem(CONFIG.CACHE_KEY); if (!cached) return null; const { data, timestamp } = JSON.parse(cached); if (Date.now() - timestamp > CONFIG.CACHE_DURATION) { localStorage.removeItem(CONFIG.CACHE_KEY); return null; } return data; } catch (e) { return null; }
     }
-
-    function cacheData(data) {
-      try {
-        localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
-      } catch (e) { console.error('캐시 저장 실패:', e); }
-    }
+    function cacheData(data) { try { localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() })); } catch (e) { console.error('캐시 저장 실패:', e); } }
 
     // ===== INITIALIZATION =====
     function initGame() {
-      // 게임 상태 강제 리셋
-      currentSceneId = 'scene_00';
-      stats = { health: 100, sanity: 100 };
-      selectedCompanion = null;
-      inventory = [];
-      
-      createSnow();
-      createWaveformBars();
-      renderCompanionList();
-      renderInventory();
+      currentSceneId = 'scene_00'; stats = { health: 100, sanity: 100 }; selectedCompanion = null; inventory = [];
+      createSnow(); createWaveformBars(); renderCompanionList(); renderInventory();
       if (gameData.config.game_title) document.getElementById('gameTitle').textContent = gameData.config.game_title;
       if (gameData.config.game_subtitle) document.getElementById('gameSubtitle').textContent = gameData.config.game_subtitle;
-      stats.health = parseInt(gameData.config.initial_health) || 100;
-      stats.sanity = parseInt(gameData.config.initial_sanity) || 100;
-      
-      // 동료 선택 UI 리셋
+      stats.health = parseInt(gameData.config.initial_health) || 100; stats.sanity = parseInt(gameData.config.initial_sanity) || 100;
       document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected'));
-      document.getElementById('startBtn').disabled = true;
-      document.getElementById('startBtn').textContent = '동료를 선택하세요';
-      
+      document.getElementById('startBtn').disabled = true; document.getElementById('startBtn').textContent = '동료를 선택하세요';
       showScreen('titleScreen');
     }
-
     function updateLoadingStatus(text) { document.getElementById('loadingStatus').textContent = text; }
 
     // ===== UI HELPERS =====
-    function createSnow() {
-      const c = document.getElementById('snowContainer');
-      for (let i = 0; i < 50; i++) {
-        const s = document.createElement('div');
-        s.className = 'snowflake';
-        s.textContent = '❄';
-        s.style.left = Math.random() * 100 + '%';
-        s.style.animationDuration = (Math.random() * 3 + 4) + 's';
-        s.style.animationDelay = Math.random() * 5 + 's';
-        s.style.opacity = Math.random() * 0.7 + 0.3;
-        s.style.fontSize = (Math.random() * 10 + 8) + 'px';
-        c.appendChild(s);
-      }
-    }
-
-    function createWaveformBars() {
-      const container = document.getElementById('waveform');
-      container.innerHTML = '';
-      for (let i = 0; i < 20; i++) {
-        const bar = document.createElement('div');
-        bar.className = 'waveform-bar static';
-        bar.style.animationDelay = (i * 0.05) + 's';
-        container.appendChild(bar);
-      }
-    }
-
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
+    function createSnow() { const c = document.getElementById('snowContainer'); for (let i = 0; i < 50; i++) { const s = document.createElement('div'); s.className = 'snowflake'; s.textContent = '❄'; s.style.left = Math.random() * 100 + '%'; s.style.animationDuration = (Math.random() * 3 + 4) + 's'; s.style.animationDelay = Math.random() * 5 + 's'; s.style.opacity = Math.random() * 0.7 + 0.3; s.style.fontSize = (Math.random() * 10 + 8) + 'px'; c.appendChild(s); } }
+    function createWaveformBars() { const container = document.getElementById('waveform'); container.innerHTML = ''; for (let i = 0; i < 20; i++) { const bar = document.createElement('div'); bar.className = 'waveform-bar static'; bar.style.animationDelay = (i * 0.05) + 's'; container.appendChild(bar); } }
+    function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
     // ===== COMPANION =====
     function renderCompanionList() {
-      const list = document.getElementById('companionList');
-      list.innerHTML = '';
+      const list = document.getElementById('companionList'); list.innerHTML = '';
       const companions = gameData.characters.filter(c => c.role === 'companion');
       companions.forEach((comp, i) => {
         const isUnlocked = comp.unlocked === 'TRUE';
-        const card = document.createElement('div');
-        card.className = `companion-card ${isUnlocked ? '' : 'locked'}`;
+        const card = document.createElement('div'); card.className = `companion-card ${isUnlocked ? '' : 'locked'}`;
         card.onclick = () => isUnlocked && selectCompanion(i, comp);
         const avatarContent = comp.portrait_url ? `<img src="${comp.portrait_url}" alt="${comp.name}">` : ['👨', '👩', '👨‍🦱'][i] || '👤';
         card.innerHTML = `${!isUnlocked ? '<div class="lock-badge">🔒</div>' : ''}<div class="companion-info"><div class="companion-avatar">${avatarContent}</div><div class="companion-details"><div class="companion-name">${comp.name}</div><div class="companion-trait">${comp.personality || ''}</div><div class="companion-ability">특성: ${comp.ability || ''}</div>${!isUnlocked && comp.unlock_condition ? `<div class="unlock-hint">해금 조건: ${comp.unlock_condition}</div>` : ''}</div></div>`;
         list.appendChild(card);
       });
     }
-
-    function selectCompanion(index, companion) {
-      selectedCompanion = companion;
-      document.querySelectorAll('.companion-card').forEach((c, i) => c.classList.toggle('selected', i === index));
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = `${companion.name}와(과) 출발`;
-    }
+    function selectCompanion(index, companion) { selectedCompanion = companion; document.querySelectorAll('.companion-card').forEach((c, i) => c.classList.toggle('selected', i === index)); document.getElementById('startBtn').disabled = false; document.getElementById('startBtn').textContent = `${companion.name}와(과) 출발`; }
 
     // ===== GAME =====
     function startGame() {
@@ -547,188 +487,86 @@
       currentSceneId = gameData.config.start_scene || 'scene_00';
       stats = { health: parseInt(gameData.config.initial_health) || 100, sanity: parseInt(gameData.config.initial_sanity) || 100 };
       inventory = gameData.items.slice(0, 4).map(item => ({...item}));
+      gameStartTime = Date.now();
       showScreen('gameScreen');
+      sendAnalytics('game_start', { companion: selectedCompanion.name });
       renderScene();
     }
 
     function renderScene() {
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene) { showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'); return; }
-
+      sendAnalytics('scene_enter', { location: scene.location, has_sound: scene.has_sound === 'TRUE', has_mismatch: scene.has_mismatch === 'TRUE' });
       const bgEl = document.getElementById('sceneBg');
-      if (scene.background_type === 'image' && scene.background_url) {
-        bgEl.style.background = 'none';
-        bgEl.style.backgroundImage = `url(${convertDriveUrl(scene.background_url)})`;
-        bgEl.style.backgroundSize = 'cover';
-        bgEl.style.backgroundPosition = 'center';
-      } else {
-        bgEl.style.backgroundImage = 'none';
-        bgEl.style.background = getGradientForScene(currentSceneId);
-      }
-
+      if (scene.background_type === 'image' && scene.background_url) { bgEl.style.background = 'none'; bgEl.style.backgroundImage = `url(${convertDriveUrl(scene.background_url)})`; bgEl.style.backgroundSize = 'cover'; bgEl.style.backgroundPosition = 'center'; }
+      else { bgEl.style.backgroundImage = 'none'; bgEl.style.background = getGradientForScene(currentSceneId); }
       document.getElementById('locationText').textContent = scene.location || '';
       document.getElementById('sceneIcon').textContent = scene.icon || '';
-      const mainText = (scene.main_text || '').replace(/\\n/g, '\n').replace(/\n/g, '\n');
+      const mainText = (scene.main_text || '').replace(/\\n/g, '\n');
       document.getElementById('mainText').textContent = mainText;
-
       const speakerEl = document.getElementById('speaker');
-      if (scene.speaker && scene.speaker !== '나레이션') {
-        speakerEl.textContent = scene.speaker === '동료' ? selectedCompanion.name : scene.speaker;
-        speakerEl.style.display = 'block';
-      } else { speakerEl.style.display = 'none'; }
-
-      const soundBox = document.getElementById('soundBox');
-      const soundArea = document.getElementById('soundArea');
+      if (scene.speaker && scene.speaker !== '나레이션') { speakerEl.textContent = scene.speaker === '동료' ? selectedCompanion.name : scene.speaker; speakerEl.style.display = 'block'; } else { speakerEl.style.display = 'none'; }
+      const soundBox = document.getElementById('soundBox'); const soundArea = document.getElementById('soundArea');
       const hasSound = scene.has_sound === 'TRUE';
-      if (hasSound) {
-        soundBox.classList.remove('no-sound');
-        soundArea.style.pointerEvents = 'auto';
-        document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...';
-        document.getElementById('soundDetail').textContent = scene.sound_detail || '';
-        document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none';
-      } else {
-        soundBox.classList.add('no-sound');
-        soundArea.style.pointerEvents = 'none';
-        document.getElementById('soundText').textContent = '(조용하다)';
-        document.getElementById('soundDetail').textContent = '';
-        document.getElementById('soundHint').style.display = 'none';
-      }
-
+      if (hasSound) { soundBox.classList.remove('no-sound'); soundArea.style.pointerEvents = 'auto'; document.getElementById('soundText').textContent = scene.sound_hint || '무언가 소리가 들린다...'; document.getElementById('soundDetail').textContent = scene.sound_detail || ''; document.getElementById('soundHint').style.display = scene.has_mismatch === 'TRUE' ? 'block' : 'none'; }
+      else { soundBox.classList.add('no-sound'); soundArea.style.pointerEvents = 'none'; document.getElementById('soundText').textContent = '(조용하다)'; document.getElementById('soundDetail').textContent = ''; document.getElementById('soundHint').style.display = 'none'; }
       const vignette = document.getElementById('vignette');
-      if (scene.has_mismatch === 'TRUE') { vignette.classList.add('active'); soundBox.classList.add('mismatch'); }
-      else { vignette.classList.remove('active'); soundBox.classList.remove('mismatch'); }
-
+      if (scene.has_mismatch === 'TRUE') { vignette.classList.add('active'); soundBox.classList.add('mismatch'); } else { vignette.classList.remove('active'); soundBox.classList.remove('mismatch'); }
       const choices = gameData.choices.filter(c => c.scene_id === currentSceneId).sort((a, b) => parseInt(a.order) - parseInt(b.order));
       document.getElementById('choiceButtons').innerHTML = choices.map(c => `<button class="choice-btn" onclick="makeChoice('${c.choice_id}')">${c.text}</button>`).join('');
       updateStats();
     }
 
     function getGradientForScene(sceneId) {
-      const gradients = {
-        'scene_00': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        'scene_01': 'linear-gradient(180deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%)',
-        'scene_02': 'linear-gradient(180deg, #1a1a2e 0%, #2d132c 50%, #4a1942 100%)',
-        'scene_03': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 50%, #2d3a4f 100%)',
-        'scene_04': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
-        'scene_05': 'linear-gradient(180deg, #0f1729 0%, #1a2744 50%, #2d4a6f 100%)',
-        'scene_06': 'linear-gradient(180deg, #1a1a2e 0%, #2d132c 50%, #801336 100%)',
-        'scene_07': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)',
-        'scene_08': 'linear-gradient(180deg, #0f1729 0%, #1a3a5c 50%, #2d5a8f 100%)',
-        'scene_09': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)'
-      };
+      const gradients = { 'scene_00': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', 'scene_01': 'linear-gradient(180deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%)', 'scene_02': 'linear-gradient(180deg, #1a1a2e 0%, #2d132c 50%, #4a1942 100%)', 'scene_03': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 50%, #2d3a4f 100%)', 'scene_04': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)', 'scene_05': 'linear-gradient(180deg, #0f1729 0%, #1a2744 50%, #2d4a6f 100%)', 'scene_06': 'linear-gradient(180deg, #1a1a2e 0%, #2d132c 50%, #801336 100%)', 'scene_07': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)', 'scene_08': 'linear-gradient(180deg, #0f1729 0%, #1a3a5c 50%, #2d5a8f 100%)', 'scene_09': 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)' };
       return gradients[sceneId] || 'linear-gradient(180deg, #0a0a1a 0%, #1a2744 100%)';
     }
-
-    function convertDriveUrl(url) {
-      if (!url) return '';
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-      return url;
-    }
+    function convertDriveUrl(url) { if (!url) return ''; const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`; return url; }
 
     function makeChoice(choiceId) {
       const choice = gameData.choices.find(c => c.choice_id === choiceId);
       if (!choice) return;
       const healthChange = parseInt(choice.health_change) || 0;
       const sanityChange = parseInt(choice.sanity_change) || 0;
-      if (healthChange !== 0) {
-        stats.health = Math.max(0, Math.min(100, stats.health + healthChange));
-        showNotification(healthChange > 0 ? `❤️ 생명력 +${healthChange}` : `💔 생명력 ${healthChange}`);
-      }
-      if (sanityChange !== 0) {
-        setTimeout(() => {
-          stats.sanity = Math.max(0, Math.min(100, stats.sanity + sanityChange));
-          showNotification(sanityChange > 0 ? `🧠 정신력 +${sanityChange}` : `😰 정신력 ${sanityChange}`);
-        }, healthChange !== 0 ? 1500 : 0);
-      }
+      sendAnalytics('choice', { choice_id: choiceId, choice_text: choice.text, health_change: healthChange, sanity_change: sanityChange });
+      if (healthChange !== 0) { stats.health = Math.max(0, Math.min(100, stats.health + healthChange)); showNotification(healthChange > 0 ? `❤️ 생명력 +${healthChange}` : `💔 생명력 ${healthChange}`); }
+      if (sanityChange !== 0) { setTimeout(() => { stats.sanity = Math.max(0, Math.min(100, stats.sanity + sanityChange)); showNotification(sanityChange > 0 ? `🧠 정신력 +${sanityChange}` : `😰 정신력 ${sanityChange}`); }, healthChange !== 0 ? 1500 : 0); }
       updateStats();
       if (stats.health <= 0) { setTimeout(() => gameOver('생명력이 바닥났습니다...'), 500); return; }
       if (stats.sanity <= 0) { setTimeout(() => gameOver('정신력이 바닥났습니다...'), 500); return; }
-      if (choice.next_scene_id === 'ending') { setTimeout(() => showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'), 500); return; }
-      setTimeout(() => {
-        currentSceneId = choice.next_scene_id;
-        isListening = false;
-        document.getElementById('listenOverlay').classList.remove('active');
-        document.getElementById('soundBox').classList.remove('listening');
-        stopSound();
-        renderScene();
-      }, 300);
+      if (choice.next_scene_id === 'ending') { sendAnalytics('ending', { ending_choice: choiceId }); setTimeout(() => showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'), 500); return; }
+      setTimeout(() => { currentSceneId = choice.next_scene_id; isListening = false; document.getElementById('listenOverlay').classList.remove('active'); document.getElementById('soundBox').classList.remove('listening'); stopSound(); renderScene(); }, 300);
     }
-
-    function updateStats() {
-      document.getElementById('healthBar').style.width = stats.health + '%';
-      document.getElementById('healthVal').textContent = stats.health;
-      document.getElementById('sanityBar').style.width = stats.sanity + '%';
-      document.getElementById('sanityVal').textContent = stats.sanity;
-    }
+    function updateStats() { document.getElementById('healthBar').style.width = stats.health + '%'; document.getElementById('healthVal').textContent = stats.health; document.getElementById('sanityBar').style.width = stats.sanity + '%'; document.getElementById('sanityVal').textContent = stats.sanity; }
 
     // ===== LISTENING =====
     function startListen() {
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene || scene.has_sound !== 'TRUE') return;
-      listenTimer = setTimeout(() => {
-        isListening = true;
-        document.getElementById('soundBox').classList.add('listening');
-        document.getElementById('listenOverlay').classList.add('active');
-        document.getElementById('soundHint').textContent = '집중 중...';
-        document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.remove('static'));
-        if (scene.sound_url) playSound(convertDriveUrl(scene.sound_url));
-      }, 400);
+      listenStartTime = Date.now();
+      listenTimer = setTimeout(() => { isListening = true; document.getElementById('soundBox').classList.add('listening'); document.getElementById('listenOverlay').classList.add('active'); document.getElementById('soundHint').textContent = '집중 중...'; document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.remove('static')); if (scene.sound_url) playSound(convertDriveUrl(scene.sound_url)); }, 400);
     }
-
     function endListen() {
       if (listenTimer) clearTimeout(listenTimer);
+      if (listenStartTime && isListening) { const duration = Date.now() - listenStartTime; sendAnalytics('listen', { duration_ms: duration, completed: duration >= 400 }); }
+      listenStartTime = null;
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
-      isListening = false;
-      document.getElementById('soundBox').classList.remove('listening');
-      document.getElementById('listenOverlay').classList.remove('active');
+      isListening = false; document.getElementById('soundBox').classList.remove('listening'); document.getElementById('listenOverlay').classList.remove('active');
       if (scene && scene.has_mismatch === 'TRUE') document.getElementById('soundHint').textContent = '꾹 눌러서 집중';
-      document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.add('static'));
-      stopSound();
+      document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.add('static')); stopSound();
     }
-
-    function playSound(url) {
-      if (!url) return;
-      try {
-        const audio = document.getElementById('soundPlayer');
-        audio.src = url;
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log('Audio play failed:', e));
-      } catch (e) { console.log('Sound playback error:', e); }
-    }
-
-    function stopSound() {
-      const audio = document.getElementById('soundPlayer');
-      if (audio) { audio.pause(); audio.currentTime = 0; }
-    }
+    function playSound(url) { if (!url) return; try { const audio = document.getElementById('soundPlayer'); audio.src = url; audio.volume = 0.5; audio.play().catch(e => console.log('Audio play failed:', e)); } catch (e) { console.log('Sound playback error:', e); } }
+    function stopSound() { const audio = document.getElementById('soundPlayer'); if (audio) { audio.pause(); audio.currentTime = 0; } }
 
     // ===== INVENTORY =====
-    function renderInventory() {
-      const grid = document.getElementById('inventoryGrid');
-      grid.innerHTML = '';
-      for (let i = 0; i < 8; i++) {
-        const item = inventory[i];
-        const slot = document.createElement('div');
-        slot.className = `inv-item ${item ? '' : 'empty'}`;
-        if (item) {
-          slot.innerHTML = `<span class="inv-icon">${item.icon}</span><span class="inv-name">${item.name}</span>`;
-          slot.onclick = () => useItem(i);
-        }
-        grid.appendChild(slot);
-      }
-    }
-
+    function renderInventory() { const grid = document.getElementById('inventoryGrid'); grid.innerHTML = ''; for (let i = 0; i < 8; i++) { const item = inventory[i]; const slot = document.createElement('div'); slot.className = `inv-item ${item ? '' : 'empty'}`; if (item) { slot.innerHTML = `<span class="inv-icon">${item.icon}</span><span class="inv-name">${item.name}</span>`; slot.onclick = () => useItem(i); } grid.appendChild(slot); } }
     function useItem(index) {
-      const item = inventory[index];
-      if (!item) return;
-      const healthEffect = parseInt(item.health_effect) || 0;
-      const sanityEffect = parseInt(item.sanity_effect) || 0;
+      const item = inventory[index]; if (!item) return;
+      const healthEffect = parseInt(item.health_effect) || 0; const sanityEffect = parseInt(item.sanity_effect) || 0;
+      sendAnalytics('item_use', { item_name: item.name, health_effect: healthEffect, sanity_effect: sanityEffect });
       if (healthEffect !== 0) { stats.health = Math.min(100, stats.health + healthEffect); showNotification(`${item.icon} ${item.name} 사용! 생명력 +${healthEffect}`); }
       if (sanityEffect !== 0) { stats.sanity = Math.min(100, stats.sanity + sanityEffect); showNotification(`${item.icon} ${item.name} 사용! 정신력 +${sanityEffect}`); }
-      updateStats();
-      inventory.splice(index, 1);
-      renderInventory();
-      toggleBag();
+      updateStats(); inventory.splice(index, 1); renderInventory(); toggleBag();
     }
 
     // ===== MODALS =====
@@ -736,26 +574,23 @@
     function toggleBag() { document.getElementById('bagModal').classList.toggle('active'); }
 
     // ===== NOTIFICATIONS =====
-    function showNotification(msg) {
-      const el = document.getElementById('notification');
-      el.textContent = msg;
-      el.classList.add('active');
-      setTimeout(() => el.classList.remove('active'), 2500);
-    }
-
+    function showNotification(msg) { const el = document.getElementById('notification'); el.textContent = msg; el.classList.add('active'); setTimeout(() => el.classList.remove('active'), 2500); }
     function gameOver(reason) {
-      document.getElementById('gameoverReason').textContent = reason;
-      document.getElementById('gameoverOverlay').classList.add('active');
+      const gameOverReason = stats.health <= 0 ? 'health' : 'sanity';
+      sendAnalytics('game_over', { reason: gameOverReason, final_scene: currentSceneId });
+      document.getElementById('gameoverReason').textContent = reason; document.getElementById('gameoverOverlay').classList.add('active');
     }
+    function restartGame() { document.getElementById('gameoverOverlay').classList.remove('active'); showScreen('titleScreen'); selectedCompanion = null; document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected')); document.getElementById('startBtn').disabled = true; document.getElementById('startBtn').textContent = '동료를 선택하세요'; }
 
-    function restartGame() {
-      document.getElementById('gameoverOverlay').classList.remove('active');
-      showScreen('titleScreen');
-      selectedCompanion = null;
-      document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected'));
-      document.getElementById('startBtn').disabled = true;
-      document.getElementById('startBtn').textContent = '동료를 선택하세요';
-    }
+    // ===== SESSION END (page leave) =====
+    window.addEventListener('beforeunload', function() {
+      if (gameStartTime) {
+        sendAnalytics('session_end', {
+          end_reason: 'leave',
+          final_scene: currentSceneId
+        });
+      }
+    });
 
     // ===== START =====
     loadGameData();
