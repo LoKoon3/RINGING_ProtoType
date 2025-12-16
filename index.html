@@ -163,10 +163,25 @@
     @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Game Over */
-    .gameover-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 70; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .gameover-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 70; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
     .gameover-overlay.active { display: flex; }
     .gameover-text { font-size: 32px; color: var(--color-danger); font-weight: bold; margin-bottom: 16px; }
     .gameover-reason { font-size: 14px; color: var(--color-text-dim); margin-bottom: 30px; }
+    .gameover-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 200px; }
+
+    /* Ending Overlay */
+    .ending-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 70; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+    .ending-overlay.active { display: flex; }
+    .ending-text { font-size: 28px; color: var(--color-cold); font-weight: bold; margin-bottom: 10px; }
+    .ending-subtitle { font-size: 14px; color: var(--color-text-dim); margin-bottom: 30px; }
+    .ending-buttons { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 200px; }
+
+    /* Release Info Popup */
+    .release-popup { position: absolute; inset: 0; background: rgba(0,0,0,0.98); z-index: 80; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
+    .release-popup.active { display: flex; }
+    .release-logo { font-size: 36px; color: var(--color-text); font-weight: bold; margin-bottom: 20px; letter-spacing: 4px; }
+    .release-info { font-size: 16px; color: var(--color-warm); margin-bottom: 10px; }
+    .release-thanks { font-size: 14px; color: var(--color-text-dim); margin-bottom: 30px; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -282,7 +297,28 @@
       <div class="gameover-overlay" id="gameoverOverlay">
         <div class="gameover-text">GAME OVER</div>
         <div class="gameover-reason" id="gameoverReason"></div>
-        <button class="title-btn" onclick="restartGame()">다시 시작</button>
+        <div class="gameover-buttons">
+          <button class="title-btn" onclick="restartGame()">다시 시작</button>
+          <button class="title-btn" onclick="showReleasePopup()" style="background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.3)); border-color: var(--color-warm);">정식 게임 하러가기</button>
+        </div>
+      </div>
+
+      <!-- Ending Overlay -->
+      <div class="ending-overlay" id="endingOverlay">
+        <div class="ending-text">🎉 축하합니다!</div>
+        <div class="ending-subtitle">엔딩에 도달했습니다</div>
+        <div class="ending-buttons">
+          <button class="title-btn" onclick="restartGame()">다시 시작</button>
+          <button class="title-btn" onclick="showReleasePopup()" style="background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.3)); border-color: var(--color-warm);">정식 게임 하러가기</button>
+        </div>
+      </div>
+
+      <!-- Release Info Popup -->
+      <div class="release-popup" id="releasePopup">
+        <div class="release-logo">RINGING</div>
+        <div class="release-info">2027년 상반기 출시 예정</div>
+        <div class="release-thanks">관심을 가져주셔서 감사합니다</div>
+        <button class="title-btn" onclick="closeReleasePopup()">닫기</button>
       </div>
     </div>
   </div>
@@ -534,7 +570,7 @@
       updateStats();
       if (stats.health <= 0) { setTimeout(() => gameOver('생명력이 바닥났습니다...'), 500); return; }
       if (stats.sanity <= 0) { setTimeout(() => gameOver('정신력이 바닥났습니다...'), 500); return; }
-      if (choice.next_scene_id.startsWith('ending')) { sendAnalytics('ending', { ending_choice: choiceId, ending_type: choice.next_scene_id }); setTimeout(() => showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'), 500); return; }
+      if (choice.next_scene_id.startsWith('ending')) { sendAnalytics('ending', { ending_choice: choiceId, ending_type: choice.next_scene_id }); setTimeout(() => showEndingOverlay(), 500); return; }
       setTimeout(() => { currentSceneId = choice.next_scene_id; isListening = false; document.getElementById('listenOverlay').classList.remove('active'); document.getElementById('soundBox').classList.remove('listening'); stopSound(); renderScene(); }, 300);
     }
     function updateStats() { document.getElementById('healthBar').style.width = stats.health + '%'; document.getElementById('healthVal').textContent = stats.health; document.getElementById('sanityBar').style.width = stats.sanity + '%'; document.getElementById('sanityVal').textContent = stats.sanity; }
@@ -580,7 +616,27 @@
       sendAnalytics('game_over', { reason: gameOverReason, final_scene: currentSceneId });
       document.getElementById('gameoverReason').textContent = reason; document.getElementById('gameoverOverlay').classList.add('active');
     }
-    function restartGame() { document.getElementById('gameoverOverlay').classList.remove('active'); showScreen('titleScreen'); selectedCompanion = null; document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected')); document.getElementById('startBtn').disabled = true; document.getElementById('startBtn').textContent = '동료를 선택하세요'; }
+    function restartGame() {
+      document.getElementById('gameoverOverlay').classList.remove('active');
+      document.getElementById('endingOverlay').classList.remove('active');
+      document.getElementById('releasePopup').classList.remove('active');
+      showScreen('titleScreen');
+      selectedCompanion = null;
+      document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('startBtn').textContent = '동료를 선택하세요';
+    }
+
+    // ===== RELEASE POPUP =====
+    function showReleasePopup() {
+      document.getElementById('releasePopup').classList.add('active');
+    }
+    function closeReleasePopup() {
+      document.getElementById('releasePopup').classList.remove('active');
+    }
+    function showEndingOverlay() {
+      document.getElementById('endingOverlay').classList.add('active');
+    }
 
     // ===== SESSION END (page leave) =====
     window.addEventListener('beforeunload', function() {
