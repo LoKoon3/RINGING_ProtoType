@@ -558,19 +558,11 @@
     }
     function convertDriveUrl(url) { if (!url) return ''; const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`; return url; }
 
-    // Convert 10-based value to 1-based (for 5-slot system)
-    function convertStatChange(value) {
-      if (value === 0) return 0;
-      return Math.sign(value) * Math.max(1, Math.round(Math.abs(value) / 10));
-    }
-
     function makeChoice(choiceId) {
       const choice = gameData.choices.find(c => c.choice_id === choiceId);
       if (!choice) return;
-      const rawHealthChange = parseInt(choice.health_change) || 0;
-      const rawSanityChange = parseInt(choice.sanity_change) || 0;
-      const healthChange = convertStatChange(rawHealthChange);
-      const sanityChange = convertStatChange(rawSanityChange);
+      const healthChange = parseInt(choice.health_change) || 0;
+      const sanityChange = parseInt(choice.sanity_change) || 0;
       sendAnalytics('choice', { choice_id: choiceId, choice_text: choice.text, health_change: healthChange, sanity_change: sanityChange });
       if (healthChange !== 0) { stats.health = Math.max(0, Math.min(MAX_STATS, stats.health + healthChange)); showNotification(healthChange > 0 ? `❤️ +${healthChange}` : `💔 ${healthChange}`); }
       if (sanityChange !== 0) { setTimeout(() => { stats.sanity = Math.max(0, Math.min(MAX_STATS, stats.sanity + sanityChange)); showNotification(sanityChange > 0 ? `🧠 +${sanityChange}` : `😰 ${sanityChange}`); updateStats(); }, healthChange !== 0 ? 1500 : 0); }
@@ -624,10 +616,8 @@
     function renderInventory() { const grid = document.getElementById('inventoryGrid'); grid.innerHTML = ''; for (let i = 0; i < 8; i++) { const item = inventory[i]; const slot = document.createElement('div'); slot.className = `inv-item ${item ? '' : 'empty'}`; if (item) { slot.innerHTML = `<span class="inv-icon">${item.icon}</span><span class="inv-name">${item.name}</span>`; slot.onclick = () => useItem(i); } grid.appendChild(slot); } }
     function useItem(index) {
       const item = inventory[index]; if (!item) return;
-      const rawHealthEffect = parseInt(item.health_effect) || 0;
-      const rawSanityEffect = parseInt(item.sanity_effect) || 0;
-      const healthEffect = convertStatChange(rawHealthEffect);
-      const sanityEffect = convertStatChange(rawSanityEffect);
+      const healthEffect = parseInt(item.health_effect) || 0;
+      const sanityEffect = parseInt(item.sanity_effect) || 0;
       sendAnalytics('item_use', { item_name: item.name, health_effect: healthEffect, sanity_effect: sanityEffect });
       if (healthEffect !== 0) { stats.health = Math.min(MAX_STATS, stats.health + healthEffect); showNotification(`${item.icon} ${item.name} 사용! ❤️ +${healthEffect}`); }
       if (sanityEffect !== 0) { stats.sanity = Math.min(MAX_STATS, stats.sanity + sanityEffect); showNotification(`${item.icon} ${item.name} 사용! 🧠 +${sanityEffect}`); }
