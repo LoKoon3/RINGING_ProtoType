@@ -1380,11 +1380,19 @@
 
     // ===== SESSION END (page leave) =====
     window.addEventListener('beforeunload', function() {
-      if (gameStartTime) {
-        sendAnalytics('session_end', {
-          end_reason: 'leave',
-          final_scene: currentSceneId
-        });
+      if (gameStartTime && CONFIG.ANALYTICS_URL) {
+        // sendBeacon 사용 (페이지 종료 시에도 안정적으로 전송)
+        const payload = {
+          session_id: sessionId,
+          event_type: 'session_end',
+          scene_id: currentSceneId || '',
+          detail: { end_reason: 'leave', final_scene: currentSceneId },
+          health: stats.health,
+          sanity: stats.sanity,
+          play_time: getPlayTime(),
+          companion: selectedCompanion ? selectedCompanion.name : ''
+        };
+        navigator.sendBeacon(CONFIG.ANALYTICS_URL, JSON.stringify(payload));
       }
     });
 
