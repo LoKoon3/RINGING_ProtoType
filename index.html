@@ -657,9 +657,13 @@
     };
 
     // ===== ANALYTICS =====
-    const sessionId = generateSessionId();
+    let sessionId = generateSessionId();
     let gameStartTime = null;
     let listenStartTime = null;
+    let lastInteractionTime = null;
+    let sessionTimeoutTimer = null;
+    let sessionEnded = false;
+    const SESSION_TIMEOUT = 30000; // 30초
 
     function generateSessionId() {
       return Math.random().toString(36).substring(2, 10);
@@ -692,6 +696,73 @@
         console.log('[Analytics]', eventType, detail);
       } catch (e) {
         console.error('[Analytics Error]', e);
+      }
+    }
+
+    // play_time을 직접 지정하는 Analytics 전송
+    async function sendAnalyticsWithPlayTime(eventType, detail, playTime) {
+      if (!CONFIG.ANALYTICS_URL) return;
+      try {
+        const payload = {
+          session_id: sessionId,
+          event_type: eventType,
+          scene_id: currentSceneId || '',
+          detail: detail,
+          health: stats.health,
+          sanity: stats.sanity,
+          play_time: playTime,
+          companion: selectedCompanion ? selectedCompanion.name : ''
+        };
+        fetch(CONFIG.ANALYTICS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        console.log('[Analytics]', eventType, detail, 'play_time:', playTime);
+      } catch (e) {
+        console.error('[Analytics Error]', e);
+      }
+    }
+
+    // 조작 감지 - 마지막 조작 시간 갱신
+    function updateLastInteraction() {
+      if (!gameStartTime) return;
+      lastInteractionTime = Date.now();
+
+      // 세션 종료 상태에서 조작 → 새 세션 시작
+      if (sessionEnded) {
+        startNewSession();
+      }
+    }
+
+    // 새 세션 시작
+    function startNewSession() {
+      sessionId = generateSessionId();
+      gameStartTime = Date.now();
+      lastInteractionTime = Date.now();
+      sessionEnded = false;
+      sendAnalytics('game_start', { companion: selectedCompanion?.name, resumed: true });
+      console.log('[Session] New session started:', sessionId);
+    }
+
+    // 타임아웃 체크 (5초마다 실행)
+    function checkSessionTimeout() {
+      if (!gameStartTime || sessionEnded || !lastInteractionTime) return;
+
+      const timeSinceLastInteraction = Date.now() - lastInteractionTime;
+
+      if (timeSinceLastInteraction >= SESSION_TIMEOUT) {
+        // 플레이 시간 = 마지막 조작 시간 - 시작 시간 (타임아웃 30초 제외)
+        const playTime = Math.floor((lastInteractionTime - gameStartTime) / 1000);
+
+        sendAnalyticsWithPlayTime('session_end', {
+          end_reason: 'timeout',
+          final_scene: currentSceneId
+        }, playTime);
+
+        sessionEnded = true;
+        console.log('[Session] Session ended by timeout. Play time:', playTime);
       }
     }
 
@@ -901,6 +972,14 @@
       // 타이틀 화면에서 BGM 시작 (첫 클릭 필요)
       document.body.addEventListener('click', startBGMOnce, { once: true });
       document.body.addEventListener('touchstart', startBGMOnce, { once: true });
+
+      // 조작 감지 이벤트 리스너 (게임 화면에서만)
+      const gameScreen = document.getElementById('gameScreen');
+      gameScreen.addEventListener('click', updateLastInteraction);
+      gameScreen.addEventListener('touchstart', updateLastInteraction);
+      document.addEventListener('keydown', (e) => {
+        if (gameScreen.classList.contains('active')) updateLastInteraction();
+      });
     }
 
     function startBGMOnce() {
@@ -994,6 +1073,13 @@
       stats = { health: MAX_STATS, sanity: MAX_STATS };
       inventory = gameData.items.slice(0, 4).map(item => ({...item}));
       gameStartTime = Date.now();
+      lastInteractionTime = Date.now();
+      sessionEnded = false;
+
+      // 기존 타이머 정리 후 새로 시작
+      if (sessionTimeoutTimer) clearInterval(sessionTimeoutTimer);
+      sessionTimeoutTimer = setInterval(checkSessionTimeout, 5000); // 5초마다 체크
+
       showScreen('gameScreen');
       sendAnalytics('game_start', { companion: selectedCompanion.name });
       renderScene();
@@ -1380,7 +1466,8 @@
 
     // ===== SESSION END (page leave) =====
     window.addEventListener('beforeunload', function() {
-      if (gameStartTime && CONFIG.ANALYTICS_URL) {
+      // 타임아웃으로 이미 세션 종료된 경우 중복 전송 방지
+      if (gameStartTime && CONFIG.ANALYTICS_URL && !sessionEnded) {
         // sendBeacon 사용 (페이지 종료 시에도 안정적으로 전송)
         const payload = {
           session_id: sessionId,
