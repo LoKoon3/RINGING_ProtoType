@@ -1480,11 +1480,21 @@
         companion: selectedCompanion ? selectedCompanion.name : ''
       };
 
-      // Blob으로 Content-Type 명시 (JSON 파싱 보장)
-      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      navigator.sendBeacon(CONFIG.ANALYTICS_URL, blob);
+      // fetch with keepalive (페이지 종료 후에도 요청 완료 보장)
+      try {
+        fetch(CONFIG.ANALYTICS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true
+        });
+      } catch (e) {
+        // keepalive 실패 시 sendBeacon 폴백
+        navigator.sendBeacon(CONFIG.ANALYTICS_URL, JSON.stringify(payload));
+      }
       sessionEnded = true;
-      console.log('[Analytics] Session end beacon sent:', reason, 'play_time:', payload.play_time);
+      console.log('[Analytics] Session end sent:', reason, 'play_time:', payload.play_time);
     }
 
     // visibilitychange: 탭 전환, 브라우저 최소화, 모바일 홈버튼 등
