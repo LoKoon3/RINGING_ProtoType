@@ -98,7 +98,7 @@
     .location-text { font-size: 11px; color: var(--color-text-dim); }
 
     /* Sound Area - Waveform UI */
-    .sound-area { position: absolute; top: 280px; left: 12px; right: 12px; z-index: 20; cursor: pointer; user-select: none; }
+    .sound-area { position: absolute; bottom: 195px; left: 12px; right: 12px; z-index: 20; cursor: pointer; user-select: none; }
     .sound-box { background: rgba(30, 58, 95, 0.8); border-radius: 12px; padding: 6px 8px; border: 2px solid #374151; transition: all 0.3s; }
     .sound-box.mismatch { border-color: var(--color-danger); animation: soundPulse 2.5s infinite; }
     .sound-box.listening { border-color: var(--color-cold); background: rgba(56, 189, 248, 0.15); animation: none; }
@@ -126,10 +126,15 @@
     .sound-box.listening .sound-detail { display: block; }
 
     /* Main Text Area */
-    .main-text-area { position: absolute; top: 140px; left: 12px; right: 12px; height: 130px; z-index: 20; cursor: pointer; }
-    .main-box { background: rgba(0,0,0,0.7); border-radius: 16px; padding: 14px 16px; border: 1px solid #374151; height: 100%; box-sizing: border-box; overflow-y: auto; }
+    .main-text-area { position: absolute; top: 110px; left: 12px; right: 12px; height: 180px; z-index: 20; cursor: pointer; }
+    .main-box { background: rgba(0,0,0,0.7); border-radius: 16px; padding: 14px 16px; border: 1px solid #374151; height: 100%; box-sizing: border-box; overflow-y: auto; position: relative; }
     .speaker { font-size: 13px; color: var(--color-cold); margin-bottom: 10px; font-weight: bold; }
     .main-text { font-size: 14px; color: var(--color-text); line-height: 1.8; white-space: pre-line; }
+
+    /* Next Indicator (터치 가능 표시) */
+    .next-indicator { position: absolute; bottom: 8px; right: 12px; color: #9ca3af; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .next-indicator.visible { animation: indicatorBlink 1.2s ease-in-out infinite; }
+    @keyframes indicatorBlink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
     /* Choice Area */
     .choice-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); opacity: 0; transition: opacity 0.5s ease; }
@@ -163,6 +168,12 @@
     .notification { position: absolute; top: 60px; left: 12px; right: 12px; background: rgba(0,0,0,0.95); border-radius: 12px; padding: 12px; text-align: center; font-size: 13px; color: var(--color-text); z-index: 60; display: none; animation: slideIn 0.3s; border: 1px solid #374151; }
     .notification.active { display: block; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Location Announce (장소 변경 알림) */
+    .location-announce { position: absolute; top: 55px; left: 12px; right: 12px; text-align: center; z-index: 30; pointer-events: none; opacity: 0; }
+    .location-announce.active { animation: locationFade 2s ease-in-out forwards; }
+    .location-announce-text { font-size: 22px; font-weight: bold; color: var(--color-text); text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.3); letter-spacing: 2px; }
+    @keyframes locationFade { 0% { opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
 
     /* Game Over */
     .gameover-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 70; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
@@ -229,7 +240,7 @@
       <div class="title-content">
         <div class="game-logo" id="gameTitle">RINGING</div>
         <div class="game-subtitle" id="gameSubtitle">빙하기 생존 어드벤처</div>
-        <button class="title-btn" onclick="showScreen('companionScreen')">게임 시작</button>
+        <button class="title-btn" onclick="AudioManager.playUI('click'); showScreen('companionScreen')">게임 시작</button>
       </div>
       <div class="title-footer">2040년, 대한민국</div>
     </div>
@@ -241,7 +252,7 @@
         <div class="companion-desc">함께할 동료를 선택하세요</div>
       </div>
       <div class="companion-list" id="companionList"></div>
-      <button class="start-btn" id="startBtn" onclick="startGame()" disabled>동료를 선택하세요</button>
+      <button class="start-btn" id="startBtn" onclick="AudioManager.playUI('click'); startGame()" disabled>동료를 선택하세요</button>
     </div>
 
     <!-- Game Screen -->
@@ -251,6 +262,7 @@
       <div class="vignette" id="vignette"></div>
       <div class="listen-overlay" id="listenOverlay"></div>
       <div class="notification" id="notification"></div>
+      <div class="location-announce" id="locationAnnounce"></div>
 
       <div class="top-bar">
         <div class="stats">
@@ -271,6 +283,7 @@
         <div class="main-box">
           <div class="speaker" id="speaker"></div>
           <div class="main-text" id="mainText"></div>
+          <div class="next-indicator" id="nextIndicator">▼</div>
         </div>
       </div>
 
@@ -305,7 +318,7 @@
           <div class="help-warning">
             <p>⚠️ 붉은 테두리 = 불일치 상황<br>청각에 집중하여 숨겨진 정보를 파악하세요.</p>
           </div>
-          <button class="close-btn" onclick="toggleHelp()">닫기</button>
+          <button class="close-btn" onclick="AudioManager.playUI('click'); toggleHelp()">닫기</button>
         </div>
       </div>
 
@@ -325,7 +338,7 @@
         <div class="gameover-text">GAME OVER</div>
         <div class="gameover-reason" id="gameoverReason"></div>
         <div class="gameover-buttons">
-          <button class="cta-btn" onclick="showReleasePopup()">정식 게임 플레이</button>
+          <button class="cta-btn" onclick="AudioManager.playUI('click'); showReleasePopup()">정식 게임 플레이</button>
         </div>
       </div>
 
@@ -334,7 +347,7 @@
         <div class="ending-text">🎉 축하합니다!</div>
         <div class="ending-subtitle">엔딩에 도달했습니다</div>
         <div class="ending-buttons">
-          <button class="cta-btn" onclick="showReleasePopup()">정식 게임 플레이</button>
+          <button class="cta-btn" onclick="AudioManager.playUI('click'); showReleasePopup()">정식 게임 플레이</button>
         </div>
       </div>
 
@@ -347,8 +360,12 @@
     </div>
   </div>
 
-  <!-- Audio Element for Sound Playback -->
+  <!-- Audio Elements -->
   <audio id="soundPlayer" preload="auto"></audio>
+  <audio id="bgmPlayer" preload="auto" loop></audio>
+  <audio id="ambientPlayer" preload="auto" loop></audio>
+  <audio id="sfxPlayer" preload="auto"></audio>
+  <audio id="uiPlayer" preload="auto"></audio>
 
   <script>
     // =====================================================
@@ -357,11 +374,202 @@
     const CONFIG = {
       API_KEY: 'AIzaSyDCyFtJIAONm_LtZxAyKYhYes-2FZ8K1AU',
       SPREADSHEET_ID: '16LtN9qtgWG7Fhc2TRKUgWA_6IIpiYcslnEaRmVUDRww',
-      CACHE_KEY: 'ringing_game_data_v8',
+      CACHE_KEY: 'ringing_game_data_v11',
       CACHE_DURATION: 1000 * 60 * 30,
       ANALYTICS_URL: 'https://script.google.com/macros/s/AKfycbz0ltWlEWlZSUAQ8_0tzQAQ0Z7JcP6mROkVeJ-p7avQD_UQpA3P-V6y___cu7i1maBd/exec'
     };
     // =====================================================
+
+    // ===== AUDIO MANAGER =====
+    const AudioManager = {
+      bgm: null,
+      ambient: null,
+      sfx: null,
+      ui: null,
+      initialized: false,
+      muted: false,
+
+      // 볼륨 설정
+      volumes: {
+        bgm: 0.15,
+        ambient: 0.4,
+        sfx: 0.5,
+        ui: 0.4
+      },
+
+      // 사운드 파일 경로
+      paths: {
+        bgm: {
+          main: 'assets/sounds/bgm/bgm_main.mp3'
+        },
+        ambient: {
+          blizzard: 'assets/sounds/ambient/amb_blizzard.mp3',
+          indoor: 'assets/sounds/ambient/amb_indoor.mp3',
+          highway: 'assets/sounds/ambient/amb_highway.mp3',
+          ocean: 'assets/sounds/ambient/amb_ocean.mp3',
+          crowd: 'assets/sounds/ambient/amb_crowd.mp3'
+        },
+        sfx: {
+          siren: 'assets/sounds/sfx/sfx_siren.mp3',
+          footsteps_snow: 'assets/sounds/sfx/sfx_footsteps_snow.mp3',
+          campfire: 'assets/sounds/sfx/sfx_campfire.mp3',
+          vehicle: 'assets/sounds/sfx/sfx_vehicle.mp3',
+          breathing: 'assets/sounds/sfx/sfx_breathing.mp3',
+          whisper: 'assets/sounds/sfx/sfx_whisper.mp3',
+          radio: 'assets/sounds/sfx/sfx_radio.mp3',
+          helicopter: 'assets/sounds/sfx/sfx_helicopter.mp3',
+          stat_change: 'assets/sounds/sfx/sfx_health_sanity.mp3'
+        },
+        ui: {
+          click: 'assets/sounds/ui/ui_click.mp3',
+          hover: 'assets/sounds/ui/ui_hover.mp3',
+          select: 'assets/sounds/ui/ui_select.mp3',
+          open: 'assets/sounds/ui/ui_open.mp3',
+          close: 'assets/sounds/ui/ui_close.mp3'
+        }
+      },
+
+      // 씬별 Ambient 매핑
+      sceneAmbient: {
+        'scene_00': 'blizzard',
+        'scene_01': 'blizzard',
+        'scene_02': 'indoor',
+        'scene_03': 'highway',
+        'scene_04': 'highway',
+        'scene_05': 'crowd',
+        'scene_06': 'blizzard',
+        'scene_07': 'ocean',
+        'scene_08': 'indoor',
+        'scene_09': null
+      },
+
+      // 씬별 청각 집중 SFX 매핑
+      sceneSfx: {
+        'scene_00': 'siren',
+        'scene_01': 'footsteps_snow',
+        'scene_02': 'campfire',
+        'scene_03': 'vehicle',
+        'scene_04': 'breathing',
+        'scene_05': 'whisper',
+        'scene_06': 'radio',
+        'scene_07': 'helicopter',
+        'scene_08': 'whisper',
+        'scene_09': null
+      },
+
+      init() {
+        this.bgm = document.getElementById('bgmPlayer');
+        this.ambient = document.getElementById('ambientPlayer');
+        this.sfx = document.getElementById('sfxPlayer');
+        this.ui = document.getElementById('uiPlayer');
+        this.initialized = true;
+      },
+
+      // BGM 재생
+      playBGM(key = 'main') {
+        if (!this.initialized || this.muted) return;
+        const path = this.paths.bgm[key];
+        if (!path || !this.bgm) return;
+
+        if (this.bgm.src.includes(path) && !this.bgm.paused) return;
+
+        this.bgm.src = path;
+        this.bgm.volume = this.volumes.bgm;
+        this.bgm.play().catch(e => console.log('BGM play failed:', e));
+      },
+
+      stopBGM() {
+        if (this.bgm) {
+          this.bgm.pause();
+          this.bgm.currentTime = 0;
+        }
+      },
+
+      // Ambient 재생 (씬별)
+      playAmbient(sceneId) {
+        if (!this.initialized || this.muted) return;
+        const ambientKey = this.sceneAmbient[sceneId];
+        if (!ambientKey) {
+          this.stopAmbient();
+          return;
+        }
+
+        const path = this.paths.ambient[ambientKey];
+        if (!path || !this.ambient) return;
+
+        // 같은 ambient면 재생 유지
+        if (this.ambient.src.includes(path) && !this.ambient.paused) return;
+
+        this.ambient.src = path;
+        this.ambient.volume = this.volumes.ambient;
+        this.ambient.play().catch(e => console.log('Ambient play failed:', e));
+      },
+
+      stopAmbient() {
+        if (this.ambient) {
+          this.ambient.pause();
+          this.ambient.currentTime = 0;
+        }
+      },
+
+      // 청각 집중 SFX 재생
+      playListenSfx(sceneId) {
+        if (!this.initialized || this.muted) return;
+        const sfxKey = this.sceneSfx[sceneId];
+        if (!sfxKey) return;
+
+        const path = this.paths.sfx[sfxKey];
+        if (!path || !this.sfx) return;
+
+        this.sfx.src = path;
+        this.sfx.volume = this.volumes.sfx;
+        this.sfx.loop = true;
+        this.sfx.play().catch(e => console.log('SFX play failed:', e));
+      },
+
+      stopListenSfx() {
+        if (this.sfx) {
+          this.sfx.pause();
+          this.sfx.currentTime = 0;
+          this.sfx.loop = false;
+        }
+      },
+
+      // 스탯 변화 효과음
+      playStatChange() {
+        if (!this.initialized || this.muted) return;
+        const path = this.paths.sfx.stat_change;
+        if (!path) return;
+
+        // 별도 Audio 객체로 재생 (UI 플레이어 사용)
+        const audio = new Audio(path);
+        audio.volume = this.volumes.sfx;
+        audio.play().catch(e => console.log('Stat SFX failed:', e));
+      },
+
+      // UI 효과음 재생
+      playUI(key) {
+        if (!this.initialized || this.muted) return;
+        const path = this.paths.ui[key];
+        if (!path) return;
+
+        // 새 Audio 객체로 빠른 재생
+        const audio = new Audio(path);
+        audio.volume = this.volumes.ui;
+        audio.play().catch(e => console.log('UI sound failed:', e));
+      },
+
+      // 전체 음소거/해제
+      toggleMute() {
+        this.muted = !this.muted;
+        if (this.muted) {
+          this.stopBGM();
+          this.stopAmbient();
+          this.stopListenSfx();
+        }
+        return this.muted;
+      }
+    };
 
     // ===== ANALYTICS =====
     const sessionId = generateSessionId();
@@ -423,6 +631,50 @@
     let currentDialogueIndex = 0;
     let currentDialogues = [];
     let choiceDialogueCallback = null;  // 선택 대사 완료 후 콜백
+
+    // 다음 텍스트 표시 아이콘
+    let nextIndicatorTimer = null;
+
+    // 장소 변경 알림
+    let previousLocation = null;
+
+    function showNextIndicator() {
+      const indicator = document.getElementById('nextIndicator');
+      if (indicator) {
+        indicator.classList.add('visible');
+      }
+    }
+
+    function hideNextIndicator() {
+      const indicator = document.getElementById('nextIndicator');
+      if (indicator) {
+        indicator.classList.remove('visible');
+      }
+      if (nextIndicatorTimer) {
+        clearTimeout(nextIndicatorTimer);
+        nextIndicatorTimer = null;
+      }
+    }
+
+    // 장소 변경 알림 표시
+    function showLocationAnnounce(locationName) {
+      const announceEl = document.getElementById('locationAnnounce');
+      if (!announceEl) return;
+
+      // 기존 애니메이션 제거 후 재시작
+      announceEl.classList.remove('active');
+      announceEl.innerHTML = `<span class="location-announce-text">${locationName}</span>`;
+
+      // 리플로우 강제 (애니메이션 재시작용)
+      void announceEl.offsetWidth;
+
+      announceEl.classList.add('active');
+
+      // 애니메이션 종료 후 클래스 제거
+      setTimeout(() => {
+        announceEl.classList.remove('active');
+      }, 2000);
+    }
 
     // ===== DATA LOADER =====
     async function loadGameData() {
@@ -558,7 +810,16 @@
       stats.health = MAX_STATS; stats.sanity = MAX_STATS;
       document.querySelectorAll('.companion-card').forEach(c => c.classList.remove('selected'));
       document.getElementById('startBtn').disabled = true; document.getElementById('startBtn').textContent = '동료를 선택하세요';
+      // AudioManager 초기화
+      AudioManager.init();
       showScreen('titleScreen');
+      // 타이틀 화면에서 BGM 시작 (첫 클릭 필요)
+      document.body.addEventListener('click', startBGMOnce, { once: true });
+      document.body.addEventListener('touchstart', startBGMOnce, { once: true });
+    }
+
+    function startBGMOnce() {
+      AudioManager.playBGM('main');
     }
     function updateLoadingStatus(text) { document.getElementById('loadingStatus').textContent = text; }
 
@@ -585,7 +846,13 @@
         list.appendChild(card);
       });
     }
-    function selectCompanion(index, companion) { selectedCompanion = companion; document.querySelectorAll('.companion-card').forEach((c, i) => c.classList.toggle('selected', i === index)); document.getElementById('startBtn').disabled = false; document.getElementById('startBtn').textContent = `${companion.name}와(과) 출발`; }
+    function selectCompanion(index, companion) {
+      selectedCompanion = companion;
+      document.querySelectorAll('.companion-card').forEach((c, i) => c.classList.toggle('selected', i === index));
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').textContent = `${companion.name}와(과) 출발`;
+      AudioManager.playUI('select');
+    }
 
     // ===== GAME =====
     function startGame() {
@@ -615,6 +882,8 @@
         } else {
           isTyping = false;
           typingTimer = null;
+          // 0.5초 후 다음 표시 아이콘 표시
+          nextIndicatorTimer = setTimeout(showNextIndicator, 500);
           if (onComplete) onComplete();
         }
       }
@@ -622,6 +891,8 @@
     }
 
     function skipTyping() {
+      hideNextIndicator();  // 클릭 시 아이콘 숨김
+
       if (!isTyping) {
         // 타이핑 완료 상태에서 클릭 → 다음 대사로
         if (currentDialogues.length > 0 && currentDialogueIndex < currentDialogues.length) {
@@ -646,6 +917,8 @@
 
     // ===== 순차 대사 시스템 =====
     function showNextDialogue() {
+      hideNextIndicator();  // 다음 대사 시작 시 아이콘 숨김
+
       if (currentDialogueIndex >= currentDialogues.length) {
         enableInteraction();
         return;
@@ -710,6 +983,8 @@
       const scene = gameData.scenes.find(s => s.scene_id === currentSceneId);
       if (!scene) { showNotification('🎉 축하합니다! 엔딩에 도달했습니다.'); return; }
       sendAnalytics('scene_enter', { location: scene.location, has_sound: scene.has_sound === 'TRUE', has_mismatch: scene.has_mismatch === 'TRUE' });
+      // 씬별 Ambient 재생
+      AudioManager.playAmbient(currentSceneId);
       const bgEl = document.getElementById('sceneBg');
       const localBgImage = getBackgroundImageForScene(currentSceneId);
       if (localBgImage) {
@@ -727,6 +1002,14 @@
         bgEl.style.background = getGradientForScene(currentSceneId);
       }
       document.getElementById('locationText').textContent = scene.location || '';
+
+      // 장소 변경 알림 표시
+      const currentLocation = scene.location || '';
+      if (previousLocation !== null && previousLocation !== currentLocation && currentLocation) {
+        showLocationAnnounce(currentLocation);
+      }
+      previousLocation = currentLocation;
+
       const mainText = (scene.main_text || '').replace(/\\n/g, '\n');
       const mainTextEl = document.getElementById('mainText');
       const speakerEl = document.getElementById('speaker');
@@ -784,11 +1067,13 @@
     function makeChoice(choiceId) {
       const choice = gameData.choices.find(c => c.choice_id === choiceId);
       if (!choice) return;
+      // 선택지 클릭 효과음
+      AudioManager.playUI('click');
       const healthChange = parseInt(choice.health_change) || 0;
       const sanityChange = parseInt(choice.sanity_change) || 0;
       sendAnalytics('choice', { choice_id: choiceId, choice_text: choice.text, health_change: healthChange, sanity_change: sanityChange });
 
-      // 스탯 변화 + 이유 표시
+      // 스탯 변화 + 이유 표시 + 효과음
       if (healthChange !== 0) {
         stats.health = Math.max(0, Math.min(MAX_STATS, stats.health + healthChange));
         const healthReason = choice.health_reason || '';
@@ -796,6 +1081,7 @@
           ? `❤️ +${healthChange}${healthReason ? ' | ' + healthReason : ''}`
           : `💔 ${healthChange}${healthReason ? ' | ' + healthReason : ''}`;
         showNotification(healthMsg);
+        AudioManager.playStatChange();
       }
       if (sanityChange !== 0) {
         setTimeout(() => {
@@ -805,6 +1091,7 @@
             ? `🧠 +${sanityChange}${sanityReason ? ' | ' + sanityReason : ''}`
             : `😰 ${sanityChange}${sanityReason ? ' | ' + sanityReason : ''}`;
           showNotification(sanityMsg);
+          AudioManager.playStatChange();
           updateStats();
         }, healthChange !== 0 ? 1500 : 0);
       }
@@ -872,6 +1159,8 @@
       document.getElementById('gameScreen').classList.add('listening-mode');
       document.getElementById('soundHint').textContent = '집중 중...';
       document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.remove('static'));
+      // 청각 집중 SFX 재생
+      AudioManager.playListenSfx(currentSceneId);
       if (scene.sound_url) playSound(convertDriveUrl(scene.sound_url));
     }
     function endListen() {
@@ -884,7 +1173,10 @@
       document.getElementById('listenOverlay').classList.remove('active');
       document.getElementById('gameScreen').classList.remove('listening-mode');
       if (scene && scene.has_mismatch === 'TRUE') document.getElementById('soundHint').textContent = '꾹 눌러서 집중';
-      document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.add('static')); stopSound();
+      document.querySelectorAll('.waveform-bar').forEach(bar => bar.classList.add('static'));
+      // 청각 집중 SFX 정지
+      AudioManager.stopListenSfx();
+      stopSound();
     }
     function playSound(url) { if (!url) return; try { const audio = document.getElementById('soundPlayer'); audio.src = url; audio.volume = 0.5; audio.play().catch(e => console.log('Audio play failed:', e)); } catch (e) { console.log('Sound playback error:', e); } }
     function stopSound() { const audio = document.getElementById('soundPlayer'); if (audio) { audio.pause(); audio.currentTime = 0; } }
@@ -902,8 +1194,18 @@
     }
 
     // ===== MODALS =====
-    function toggleHelp() { document.getElementById('helpModal').classList.toggle('active'); }
-    function toggleBag() { document.getElementById('bagModal').classList.toggle('active'); }
+    function toggleHelp() {
+      const modal = document.getElementById('helpModal');
+      const isOpening = !modal.classList.contains('active');
+      modal.classList.toggle('active');
+      AudioManager.playUI(isOpening ? 'open' : 'close');
+    }
+    function toggleBag() {
+      const modal = document.getElementById('bagModal');
+      const isOpening = !modal.classList.contains('active');
+      modal.classList.toggle('active');
+      AudioManager.playUI(isOpening ? 'open' : 'close');
+    }
 
     // ===== NOTIFICATIONS =====
     function showNotification(msg) { const el = document.getElementById('notification'); el.textContent = msg; el.classList.add('active'); setTimeout(() => el.classList.remove('active'), 2500); }
