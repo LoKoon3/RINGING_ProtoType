@@ -662,8 +662,10 @@
     let listenStartTime = null;
     let lastInteractionTime = null;
     let sessionTimeoutTimer = null;
+    let heartbeatTimer = null;  // 하트비트 타이머
     let sessionEnded = false;
     const SESSION_TIMEOUT = 30000; // 30초
+    const HEARTBEAT_INTERVAL = 10000; // 10초마다 하트비트
 
     function generateSessionId() {
       return Math.random().toString(36).substring(2, 10);
@@ -742,8 +744,27 @@
       gameStartTime = Date.now();
       lastInteractionTime = Date.now();
       sessionEnded = false;
+      startHeartbeat();  // 하트비트 시작
       sendAnalytics('game_start', { companion: selectedCompanion?.name, resumed: true });
       console.log('[Session] New session started:', sessionId);
+    }
+
+    // 하트비트 전송 (10초마다) - 브라우저 종료 대비
+    function sendHeartbeat() {
+      if (!gameStartTime || sessionEnded) return;
+      sendAnalytics('heartbeat', { current_scene: currentSceneId });
+    }
+
+    function startHeartbeat() {
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+    }
+
+    function stopHeartbeat() {
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
     }
 
     // 타임아웃 체크 (5초마다 실행)
@@ -762,6 +783,7 @@
         }, playTime);
 
         sessionEnded = true;
+        stopHeartbeat();
         console.log('[Session] Session ended by timeout. Play time:', playTime);
       }
     }
@@ -1079,6 +1101,7 @@
       // 기존 타이머 정리 후 새로 시작
       if (sessionTimeoutTimer) clearInterval(sessionTimeoutTimer);
       sessionTimeoutTimer = setInterval(checkSessionTimeout, 5000); // 5초마다 체크
+      startHeartbeat(); // 10초마다 하트비트 전송
 
       showScreen('gameScreen');
       sendAnalytics('game_start', { companion: selectedCompanion.name });
@@ -1494,6 +1517,7 @@
         navigator.sendBeacon(CONFIG.ANALYTICS_URL, JSON.stringify(payload));
       }
       sessionEnded = true;
+      stopHeartbeat();
       console.log('[Analytics] Session end sent:', reason, 'play_time:', payload.play_time);
     }
 
