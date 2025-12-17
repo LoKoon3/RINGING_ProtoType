@@ -1465,22 +1465,43 @@
     }
 
     // ===== SESSION END (page leave) =====
-    window.addEventListener('beforeunload', function() {
-      // 타임아웃으로 이미 세션 종료된 경우 중복 전송 방지
-      if (gameStartTime && CONFIG.ANALYTICS_URL && !sessionEnded) {
-        // sendBeacon 사용 (페이지 종료 시에도 안정적으로 전송)
-        const payload = {
-          session_id: sessionId,
-          event_type: 'session_end',
-          scene_id: currentSceneId || '',
-          detail: { end_reason: 'leave', final_scene: currentSceneId },
-          health: stats.health,
-          sanity: stats.sanity,
-          play_time: getPlayTime(),
-          companion: selectedCompanion ? selectedCompanion.name : ''
-        };
-        navigator.sendBeacon(CONFIG.ANALYTICS_URL, JSON.stringify(payload));
+    // 세션 종료 데이터 전송 함수
+    function sendSessionEndBeacon(reason) {
+      if (!gameStartTime || !CONFIG.ANALYTICS_URL || sessionEnded) return;
+
+      const payload = {
+        session_id: sessionId,
+        event_type: 'session_end',
+        scene_id: currentSceneId || '',
+        detail: { end_reason: reason, final_scene: currentSceneId },
+        health: stats.health,
+        sanity: stats.sanity,
+        play_time: getPlayTime(),
+        companion: selectedCompanion ? selectedCompanion.name : ''
+      };
+
+      // Blob으로 Content-Type 명시 (JSON 파싱 보장)
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      navigator.sendBeacon(CONFIG.ANALYTICS_URL, blob);
+      sessionEnded = true;
+      console.log('[Analytics] Session end beacon sent:', reason, 'play_time:', payload.play_time);
+    }
+
+    // visibilitychange: 탭 전환, 브라우저 최소화, 모바일 홈버튼 등
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') {
+        sendSessionEndBeacon('hidden');
       }
+    });
+
+    // pagehide: Safari 등에서 더 안정적
+    window.addEventListener('pagehide', function() {
+      sendSessionEndBeacon('pagehide');
+    });
+
+    // beforeunload: 전통적인 페이지 종료 이벤트 (백업)
+    window.addEventListener('beforeunload', function() {
+      sendSessionEndBeacon('leave');
     });
 
     // ===== START =====
