@@ -222,6 +222,23 @@
       0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(251,191,36,0.4); }
       50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(251,191,36,0.7); }
     }
+
+    /* Sound Notice Overlay */
+    .sound-notice-overlay {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .sound-notice-overlay.visible { opacity: 1; }
+    .sound-notice-content { text-align: center; color: #fff; padding: 20px; }
+    .sound-notice-icon { font-size: 64px; margin-bottom: 24px; }
+    .sound-notice-text { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.85); }
   </style>
 </head>
 <body>
@@ -240,9 +257,17 @@
       <div class="title-content">
         <div class="game-logo" id="gameTitle">RINGING</div>
         <div class="game-subtitle" id="gameSubtitle">빙하기 생존 어드벤처</div>
-        <button class="title-btn" onclick="AudioManager.playUI('click'); showScreen('companionScreen')">게임 시작</button>
+        <button class="title-btn" onclick="AudioManager.playUI('click'); showSoundNotice()">게임 시작</button>
       </div>
       <div class="title-footer">2040년, 대한민국</div>
+    </div>
+
+    <!-- Sound Notice Overlay -->
+    <div id="soundNoticeOverlay" class="sound-notice-overlay">
+      <div class="sound-notice-content">
+        <div class="sound-notice-icon">🔊</div>
+        <div class="sound-notice-text">사운드와 함께 플레이하시면<br>더욱 몰입감 있게 즐기실 수 있습니다</div>
+      </div>
     </div>
 
     <!-- Companion Screen -->
@@ -828,6 +853,30 @@
     function createWaveformBars() { const container = document.getElementById('waveform'); container.innerHTML = ''; for (let i = 0; i < 20; i++) { const bar = document.createElement('div'); bar.className = 'waveform-bar static'; bar.style.animationDelay = (i * 0.05) + 's'; container.appendChild(bar); } }
     function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
+    // ===== SOUND NOTICE =====
+    function showSoundNotice() {
+      const titleScreen = document.getElementById('titleScreen');
+      const overlay = document.getElementById('soundNoticeOverlay');
+      const companionScreen = document.getElementById('companionScreen');
+
+      titleScreen.classList.remove('active');
+      overlay.style.display = 'flex';
+
+      // 페이드 인
+      setTimeout(() => overlay.classList.add('visible'), 50);
+
+      // 2초 후 페이드 아웃
+      setTimeout(() => {
+        overlay.classList.remove('visible');
+
+        // 페이드 아웃 완료 후 동료 선택 화면
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          companionScreen.classList.add('active');
+        }, 500);
+      }, 2500);
+    }
+
     // ===== COMPANION =====
     function renderCompanionList() {
       const list = document.getElementById('companionList'); list.innerHTML = '';
@@ -909,6 +958,8 @@
       if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
       document.getElementById('mainText').textContent = currentTypingText;
       isTyping = false;
+      // 즉시 다음 표시 아이콘 표시
+      showNextIndicator();
       // 대사 시스템 사용 중이면 다음 클릭 대기, 아니면 선택지 활성화
       if (currentDialogues.length === 0 && !choiceDialogueCallback) {
         enableInteraction();
