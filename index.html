@@ -164,6 +164,17 @@
     .close-btn { width: 100%; margin-top: 16px; padding: 12px; background: #374151; border: none; border-radius: 10px; color: var(--color-text); cursor: pointer; font-size: 13px; }
     .close-btn:hover { background: #4b5563; }
 
+    /* Sound Settings */
+    .sound-setting { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #374151; }
+    .sound-setting:last-child { border-bottom: none; }
+    .sound-label { font-size: 14px; color: var(--color-text); }
+    .toggle-switch { position: relative; width: 50px; height: 26px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #374151; border-radius: 26px; transition: 0.3s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle-switch input:checked + .toggle-slider { background: var(--color-cold); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+
     /* Notification */
     .notification { position: absolute; top: 60px; left: 12px; right: 12px; background: rgba(0,0,0,0.95); border-radius: 12px; padding: 12px; text-align: center; font-size: 13px; color: var(--color-text); z-index: 60; display: none; animation: slideIn 0.3s; border: 1px solid #374151; }
     .notification.active { display: block; }
@@ -295,6 +306,7 @@
           <div class="stat"><div class="stat-icons" id="sanityIcons">🧠🧠🧠🧠🧠</div></div>
         </div>
         <div class="top-buttons">
+          <button class="top-btn" onclick="toggleSound()">🔊</button>
           <button class="top-btn" onclick="toggleHelp()">❓</button>
           <button class="top-btn" onclick="toggleBag()">🎒</button>
         </div>
@@ -358,6 +370,33 @@
         </div>
       </div>
 
+      <!-- Sound Modal -->
+      <div class="modal" id="soundModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="modal-title">🔊 사운드 설정</span>
+            <button class="modal-close" onclick="toggleSound()">✕</button>
+          </div>
+          <div class="sound-settings">
+            <div class="sound-setting">
+              <span class="sound-label">🎵 배경음악 (BGM)</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="bgmToggle" checked onchange="AudioManager.toggleBGM(this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="sound-setting">
+              <span class="sound-label">🔉 효과음 (SFX)</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="sfxToggle" checked onchange="AudioManager.toggleSFX(this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <button class="close-btn" onclick="AudioManager.playUI('click'); toggleSound()">닫기</button>
+        </div>
+      </div>
+
       <!-- Game Over -->
       <div class="gameover-overlay" id="gameoverOverlay">
         <div class="gameover-text">GAME OVER</div>
@@ -416,7 +455,7 @@
 
       // 볼륨 설정
       volumes: {
-        bgm: 0.15,
+        bgm: 0.3,
         ambient: 0.4,
         sfx: 0.5,
         ui: 0.4
@@ -425,7 +464,7 @@
       // 사운드 파일 경로
       paths: {
         bgm: {
-          main: 'assets/sounds/bgm/bgm_main.mp3'
+          main: 'assets/sounds/bgm/BGM_Main_Loop.mp3'
         },
         ambient: {
           blizzard: 'assets/sounds/ambient/amb_blizzard.mp3',
@@ -492,7 +531,7 @@
 
       // BGM 재생
       playBGM(key = 'main') {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || this.muted || !this.bgmEnabled) return;
         const path = this.paths.bgm[key];
         if (!path || !this.bgm) return;
 
@@ -512,7 +551,7 @@
 
       // Ambient 재생 (씬별)
       playAmbient(sceneId) {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || this.muted || !this.bgmEnabled) return;
         const ambientKey = this.sceneAmbient[sceneId];
         if (!ambientKey) {
           this.stopAmbient();
@@ -539,7 +578,7 @@
 
       // 청각 집중 SFX 재생
       playListenSfx(sceneId) {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || this.muted || !this.sfxEnabled) return;
         const sfxKey = this.sceneSfx[sceneId];
         if (!sfxKey) return;
 
@@ -562,7 +601,7 @@
 
       // 스탯 변화 효과음
       playStatChange() {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || this.muted || !this.sfxEnabled) return;
         const path = this.paths.sfx.stat_change;
         if (!path) return;
 
@@ -574,7 +613,7 @@
 
       // UI 효과음 재생
       playUI(key) {
-        if (!this.initialized || this.muted) return;
+        if (!this.initialized || this.muted || !this.sfxEnabled) return;
         const path = this.paths.ui[key];
         if (!path) return;
 
@@ -593,6 +632,27 @@
           this.stopListenSfx();
         }
         return this.muted;
+      },
+
+      // BGM 개별 토글
+      bgmEnabled: true,
+      toggleBGM(enabled) {
+        this.bgmEnabled = enabled;
+        if (enabled) {
+          this.playBGM('main');
+        } else {
+          this.stopBGM();
+          this.stopAmbient();
+        }
+      },
+
+      // SFX 개별 토글
+      sfxEnabled: true,
+      toggleSFX(enabled) {
+        this.sfxEnabled = enabled;
+        if (!enabled) {
+          this.stopListenSfx();
+        }
       }
     };
 
@@ -847,6 +907,30 @@
       AudioManager.playBGM('main');
     }
     function updateLoadingStatus(text) { document.getElementById('loadingStatus').textContent = text; }
+
+    // ===== CHEAT CODE (발표용) =====
+    let cheatBuffer = '';
+    const CHEAT_CODES = ['ending', '두야ㅜㅎ'];
+    document.addEventListener('keydown', (e) => {
+      // 게임 화면에서만 작동
+      if (!document.getElementById('gameScreen').classList.contains('active')) return;
+
+      cheatBuffer += e.key;
+      if (cheatBuffer.length > 10) cheatBuffer = cheatBuffer.slice(-10);
+
+      for (const code of CHEAT_CODES) {
+        if (cheatBuffer.includes(code)) {
+          cheatBuffer = '';
+          // 엔딩 직전 씬으로 이동
+          currentSceneId = 'scene_09';
+          stats.health = MAX_STATS;
+          stats.sanity = MAX_STATS;
+          renderScene();
+          showNotification('🎮 엔딩 씬으로 이동!');
+          break;
+        }
+      }
+    });
 
     // ===== UI HELPERS =====
     function createSnow() { const c = document.getElementById('snowContainer'); for (let i = 0; i < 5; i++) { const s = document.createElement('div'); s.className = 'snowflake'; s.textContent = '❄'; s.style.left = Math.random() * 100 + '%'; s.style.animationDuration = (Math.random() * 3 + 4) + 's'; s.style.animationDelay = Math.random() * 5 + 's'; s.style.opacity = Math.random() * 0.7 + 0.3; s.style.fontSize = (Math.random() * 10 + 8) + 'px'; c.appendChild(s); } }
@@ -1253,6 +1337,12 @@
     }
     function toggleBag() {
       const modal = document.getElementById('bagModal');
+      const isOpening = !modal.classList.contains('active');
+      modal.classList.toggle('active');
+      AudioManager.playUI(isOpening ? 'open' : 'close');
+    }
+    function toggleSound() {
+      const modal = document.getElementById('soundModal');
       const isOpening = !modal.classList.contains('active');
       modal.classList.toggle('active');
       AudioManager.playUI(isOpening ? 'open' : 'close');
